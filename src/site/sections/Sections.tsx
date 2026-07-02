@@ -62,7 +62,7 @@ export function Stats() {
           {stats.map((s, i) => (
             <div key={s.id} className={`${sk.cardCls} p-5 flex items-center gap-4`} style={sk.cardStyle}>
               <span className={`grid place-items-center size-12 ${sk.iconShape} shrink-0`} style={sk.icon(i)}><Icon name={s.icon} className="size-6" /></span>
-              <div><b className="block site-head font-bold text-[1.5rem] leading-none" style={{ color: 'var(--tl-navy)' }}>{s.value}</b><span className="text-[.84rem]" style={{ color: 'var(--tl-slate)' }}>{s.label}</span></div>
+              <div><b className="block site-head font-bold text-[1.5rem] leading-none" style={{ color: 'var(--tl-primary)' }}>{s.value}</b><span className="text-[.84rem]" style={{ color: 'var(--tl-slate)' }}>{s.label}</span></div>
             </div>
           ))}
         </div>
@@ -77,7 +77,7 @@ export function Stats() {
           {stats.map((s, i) => (
             <div key={s.id} className="text-center">
               <span className={`grid place-items-center size-12 ${sk.iconShape} mx-auto mb-3`} style={sk.icon(i)}><Icon name={s.icon} className="size-6" /></span>
-              <b className="block site-head font-bold text-[1.9rem] leading-none" style={{ color: 'var(--tl-navy)' }}>{s.value}</b>
+              <b className="block site-head font-bold text-[1.9rem] leading-none" style={{ color: 'var(--tl-primary)' }}>{s.value}</b>
               <span className="text-[.86rem] mt-1 block" style={{ color: 'var(--tl-slate)' }}>{s.label}</span>
             </div>
           ))}
@@ -88,7 +88,7 @@ export function Stats() {
 
   // band (nền navy)
   return (
-    <section className="text-white" style={{ background: 'linear-gradient(120deg,var(--tl-primary),var(--tl-navy))' }}>
+    <section className="text-white" style={{ background: 'linear-gradient(120deg,var(--tl-primary),var(--tl-deep))' }}>
       <div className="container grid grid-cols-2 lg:grid-cols-4 gap-6 py-10">
         {stats.map((s, i) => (
           <div key={s.id} className="relative flex items-center gap-4">
@@ -177,7 +177,7 @@ export function Services() {
         {services.map((sv, i) => (
           <div key={sv.id} className={`${sk.cardCls} flex flex-col sm:flex-row gap-5 items-center p-6 ${i % 2 ? 'sm:flex-row-reverse sm:text-right' : ''}`} style={sk.cardStyle}>
             <span className={`grid place-items-center size-[68px] ${sk.iconShape} shrink-0`} style={sk.icon(i)}><Icon name={sv.icon} className="size-8" /></span>
-            <div className="flex-1"><h3 className="site-head font-bold text-[1.2rem]" style={{ color: 'var(--tl-navy)' }}>{sv.title}</h3><p className="text-[.95rem] mt-1" style={{ color: 'var(--tl-slate)' }}>{sv.desc}</p></div>
+            <div className="flex-1"><h3 className="site-head font-bold text-[1.2rem]" style={{ color: 'var(--tl-ink)' }}>{sv.title}</h3><p className="text-[.95rem] mt-1" style={{ color: 'var(--tl-slate)' }}>{sv.desc}</p></div>
             <span className="site-head font-bold text-[1.7rem] opacity-25 tabular-nums" style={{ color: sk.fg(i) }}>{String(i + 1).padStart(2, '0')}</span>
           </div>
         ))}
@@ -225,7 +225,7 @@ export function About() {
     <div className="lg:sticky lg:top-24 max-w-[400px] w-full justify-self-center">
       <div className="relative rounded-[24px] overflow-hidden border shadow-[0_24px_50px_rgba(16,40,80,.16)]" style={{ borderColor: 'var(--tl-line)' }}>
         <img src={a.photoUrl} alt={a.photoName} className="w-full object-cover" style={{ aspectRatio: '4/5', objectPosition: 'top center' }} />
-        <div className="absolute inset-x-0 bottom-0 px-5 pt-10 pb-4 text-white" style={{ background: 'linear-gradient(0deg,var(--tl-navy),transparent)' }}>
+        <div className="absolute inset-x-0 bottom-0 px-5 pt-10 pb-4 text-white" style={{ background: 'linear-gradient(0deg,var(--tl-deep),transparent)' }}>
           <b className="block site-head font-bold text-[1.16rem]">{a.photoName}</b><span className="text-[.86rem] text-white/85">{a.photoRole}</span>
         </div>
       </div>
@@ -252,7 +252,7 @@ export function About() {
         <div className="container max-w-4xl text-center">
           <img src={a.photoUrl} alt={a.photoName} className="size-28 rounded-full object-cover mx-auto border-4 border-white shadow-lg" style={{ objectPosition: 'top center' }} />
           <div className="mt-5 flex justify-center"><Eyebrow center>{a.eyebrow}</Eyebrow></div>
-          <blockquote className="site-head font-semibold italic text-[clamp(1.3rem,2.6vw,1.9rem)] leading-snug mt-4" style={{ color: 'var(--tl-navy)' }}>“{a.quote}”</blockquote>
+          <blockquote className="site-head font-semibold italic text-[clamp(1.3rem,2.6vw,1.9rem)] leading-snug mt-4" style={{ color: 'var(--tl-ink)' }}>“{a.quote}”</blockquote>
           <div className="mt-4"><b className="site-head font-bold text-[1.1rem]" style={{ color: 'var(--tl-ink)' }}>{a.photoName}</b><span className="block text-[.9rem]" style={{ color: 'var(--tl-slate)' }}>{a.photoRole}</span></div>
           <div className="mt-8 text-left">{Credentials}</div>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -272,7 +272,7 @@ export function About() {
       </div>
       <div className="mt-6">{Credentials}</div>
       <blockquote className="mt-6 rounded-2xl px-6 py-5" style={{ background: 'var(--tl-soft)', borderLeft: '4px solid var(--tl-accent)' }}>
-        <p className="site-head font-semibold italic text-[1.14rem] leading-relaxed" style={{ color: 'var(--tl-navy)' }}>“{a.quote}”</p>
+        <p className="site-head font-semibold italic text-[1.14rem] leading-relaxed" style={{ color: 'var(--tl-ink)' }}>“{a.quote}”</p>
         <cite className="block mt-2 not-italic text-[.86rem] font-semibold" style={{ color: 'var(--tl-slate)' }}>— {a.quoteCite}</cite>
       </blockquote>
     </div>
@@ -302,7 +302,7 @@ export function Specialties() {
         {specialties.map((sp, i) => (
           <div key={sp.id} className="inline-flex items-center gap-2.5 pl-2.5 pr-5 py-2 rounded-full border bg-white transition-colors hover:border-[var(--tl-primary)] hover:shadow-sm" style={{ borderColor: 'var(--tl-line)' }}>
             <span className="grid place-items-center size-9 rounded-full" style={sk.icon(i)}><Icon name={sp.icon} className="size-5" /></span>
-            <b className="site-head font-semibold text-[.98rem]" style={{ color: 'var(--tl-navy)' }}>{sp.title}</b>
+            <b className="site-head font-semibold text-[.98rem]" style={{ color: 'var(--tl-ink)' }}>{sp.title}</b>
           </div>
         ))}
       </div>
@@ -314,7 +314,7 @@ export function Specialties() {
           <div key={sp.id} className={`${sk.cardCls} relative overflow-hidden p-5`} style={sk.cardStyle}>
             <span className="absolute right-0 top-0 size-16 rounded-bl-[2rem]" style={{ background: sk.soft(i) }} />
             <span className={`relative grid place-items-center size-12 ${sk.iconShape} mb-8`} style={sk.icon(i)}><Icon name={sp.icon} className="size-6" /></span>
-            <b className="relative site-head font-bold text-[1rem] block" style={{ color: 'var(--tl-navy)' }}>{sp.title}</b>
+            <b className="relative site-head font-bold text-[1rem] block" style={{ color: 'var(--tl-ink)' }}>{sp.title}</b>
           </div>
         ))}
       </div>
@@ -325,7 +325,7 @@ export function Specialties() {
         {specialties.map((sp, i) => (
           <div key={sp.id} className={`${sk.cardCls} text-center py-7 px-4`} style={sk.cardStyle}>
             <span className="grid place-items-center size-[62px] mx-auto mb-3.5 rounded-full" style={sk.icon(i)}><Icon name={sp.icon} className="size-[30px]" /></span>
-            <b className="site-head font-bold text-[1rem]" style={{ color: 'var(--tl-navy)' }}>{sp.title}</b>
+            <b className="site-head font-bold text-[1rem]" style={{ color: 'var(--tl-ink)' }}>{sp.title}</b>
           </div>
         ))}
       </div>
@@ -413,7 +413,7 @@ export function Contact() {
               <ContactLine i={0} icon={<Phone className="size-[22px]" />} small="Hotline"><a href={`tel:${info.phone.replace(/\s/g, '')}`} style={{ color: 'var(--tl-ink)' }}>{info.phone}</a></ContactLine>
               <ContactLine i={1} icon={<MapPin className="size-[22px]" />} small="Địa chỉ"><span style={{ color: 'var(--tl-ink)' }}>{info.address}</span><p className="text-[.9rem] font-normal" style={{ color: 'var(--tl-slate)' }}>{info.addressNote}</p></ContactLine>
             </div>
-            <div className="rounded-2xl p-5 text-white" style={{ background: 'linear-gradient(130deg,var(--tl-primary),var(--tl-navy))' }}>
+            <div className="rounded-2xl p-5 text-white" style={{ background: 'linear-gradient(130deg,var(--tl-primary),var(--tl-deep))' }}>
               <b className="site-head font-semibold text-[1.05rem] flex items-center gap-2.5"><Clock className="size-5 text-white/90" /> Giờ làm việc</b>
               <ul className="mt-3.5 grid gap-2.5">
                 {info.hours.map((h) => <li key={h.id} className="flex justify-between text-[.93rem] text-white/75 pb-2.5 border-b border-white/10 last:border-0 last:pb-0">{h.label} <span className="text-white font-semibold">{h.value}</span></li>)}

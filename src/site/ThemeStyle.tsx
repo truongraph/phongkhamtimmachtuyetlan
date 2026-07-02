@@ -2,15 +2,14 @@ import { useContent } from '@/store/content'
 import { useTemplate, previewTemplateId, getTemplate } from './templates'
 import { fontStack, googleFontsHref } from '@/lib/fonts'
 
-// Simple hex -> lighter tint / darker shade helpers for derived colors
-function shade(hex: string, amt: number) {
+// Làm NHẠT màu bằng cách trộn về phía trắng theo tỉ lệ p (0..1) — GIỮ ĐÚNG tông màu
+// (không bị lệch sang xanh cyan như cách cộng thẳng vào từng kênh RGB).
+function tintWhite(hex: string, p: number) {
   const h = hex.replace('#', '')
   const n = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16)
-  let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
-  r = Math.max(0, Math.min(255, Math.round(r + amt)))
-  g = Math.max(0, Math.min(255, Math.round(g + amt)))
-  b = Math.max(0, Math.min(255, Math.round(b + amt)))
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  const mix = (c: number) => Math.round(c + (255 - c) * p)
+  return `#${((1 << 24) + (mix(r) << 16) + (mix(g) << 8) + mix(b)).toString(16).slice(1)}`
 }
 
 export function ThemeStyle() {
@@ -37,8 +36,9 @@ export function ThemeStyle() {
     --tl-primary:${t.primary};
     --tl-navy:${t.navy};
     --tl-accent:${t.accent};
-    --tl-soft:${shade(t.primary, 200)};
-    --tl-tint:${shade(t.primary, 228)};
+    --tl-soft:${tintWhite(t.primary, 0.86)};
+    --tl-tint:${tintWhite(t.primary, 0.93)};
+    --tl-deep:color-mix(in srgb, var(--tl-primary) 72%, #12335f);
     --tl-radius:${t.radius}px;
     --tl-btn:${btn};
     --tl-head:${fontStack(headFont)};

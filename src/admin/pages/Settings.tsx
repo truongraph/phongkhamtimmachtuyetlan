@@ -131,9 +131,9 @@ export function Settings() {
               <CardHeader><CardTitle>Giao diện (màu &amp; phông)</CardTitle></CardHeader>
               <CardContent className="space-y-5">
                 <div className="grid sm:grid-cols-3 gap-4">
-                  <ColorField label="Màu chính (xanh)" value={c.theme.primary} onChange={(v) => set((d) => { d.theme.primary = v })} />
-                  <ColorField label="Màu navy (đậm)" value={c.theme.navy} onChange={(v) => set((d) => { d.theme.navy = v })} />
-                  <ColorField label="Màu nhấn (đỏ)" value={c.theme.accent} onChange={(v) => set((d) => { d.theme.accent = v })} />
+                  <ColorField label="Màu chính" value={c.theme.primary} onChange={(v) => set((d) => { d.theme.primary = v })} />
+                  <ColorField label="Màu phụ" value={c.theme.navy} onChange={(v) => set((d) => { d.theme.navy = v })} />
+                  <ColorField label="Màu đỏ" value={c.theme.accent} onChange={(v) => set((d) => { d.theme.accent = v })} />
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <FontField

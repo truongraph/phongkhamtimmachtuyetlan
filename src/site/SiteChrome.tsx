@@ -32,7 +32,7 @@ function Logo({ light }: { light?: boolean }) {
     <a href="#top" className="flex items-center gap-3">
       <img src={info.logoUrl} alt="Logo" className="size-11 md:size-12 rounded-[10px] bg-white p-1 border object-contain" style={{ borderColor: 'var(--tl-line)' }} />
       <span className="flex flex-col leading-tight">
-        <b className="site-head font-bold text-[1.05rem] md:text-[1.1rem] whitespace-nowrap" style={{ color: light ? '#fff' : 'var(--tl-navy)' }}>{info.clinicName}</b>
+        <b className="site-head font-bold text-[1.05rem] md:text-[1.1rem] whitespace-nowrap" style={{ color: light ? '#fff' : 'var(--tl-ink)' }}>{info.clinicName}</b>
         <span className="hidden sm:block text-[.66rem] tracking-[.12em] uppercase font-bold" style={{ color: light ? 'rgba(255,255,255,.85)' : 'var(--tl-accent)' }}>{info.tagline}</span>
       </span>
     </a>
@@ -44,7 +44,7 @@ function NavLinks({ active, light, center }: { active: string; light?: boolean; 
     <nav className={`hidden lg:flex items-center gap-1 ${center ? 'justify-center' : ''}`}>
       {NAV.map((n) => (
         <a key={n.id} href={`#${n.id}`} className="relative px-3 py-2 rounded-lg text-[.94rem] font-semibold transition-colors"
-          style={{ color: light ? (active === n.id ? '#fff' : 'rgba(255,255,255,.82)') : (active === n.id ? 'var(--tl-navy)' : 'var(--tl-ink)') }}>
+          style={{ color: light ? (active === n.id ? '#fff' : 'rgba(255,255,255,.82)') : (active === n.id ? 'var(--tl-primary)' : 'var(--tl-ink)') }}>
           {n.label}
           <span className="absolute left-3 right-3 -bottom-[1px] h-[2.5px] rounded origin-left transition-transform"
             style={{ background: light ? '#fff' : 'var(--tl-accent)', transform: active === n.id ? 'scaleX(1)' : 'scaleX(0)' }} />
@@ -86,7 +86,7 @@ export function SiteHeader({ tel }: { tel: string }) {
   return (
     <>
       {tpl.header === 'utility' && (
-        <div className="hidden md:flex h-10 items-center text-[13px]" style={{ background: 'var(--tl-navy)', color: '#cfe1f4' }}>
+        <div className="hidden md:flex h-10 items-center text-[13px]" style={{ background: 'var(--tl-deep)', color: '#cfe1f4' }}>
           <div className="container flex items-center justify-between">
             <span className="inline-flex items-center gap-2">
               <Icon name="clock" className="size-[15px]" style={{ color: 'var(--tl-soft)' }} />
@@ -158,7 +158,7 @@ export function SiteHeader({ tel }: { tel: string }) {
 export function SiteFooter() {
   const { info, footerAbout } = useContent((s) => s.published)
   return (
-    <footer className="text-[#9DB8D4] pt-[52px] pb-20 lg:pb-10 text-[.92rem]" style={{ background: 'linear-gradient(180deg,var(--tl-navy),color-mix(in srgb,var(--tl-navy) 78%,#000))' }}>
+    <footer className="text-white/65 pt-[52px] pb-20 lg:pb-10 text-[.92rem]" style={{ background: 'linear-gradient(180deg,color-mix(in srgb,var(--tl-deep) 80%,#071427),color-mix(in srgb,var(--tl-deep) 50%,#071427))' }}>
       <div className="container">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr] pb-8 border-b border-white/10">
           <div>
@@ -167,7 +167,7 @@ export function SiteFooter() {
               <span><b className="block site-head font-bold text-white text-[1.1rem]">{info.clinicName}</b>
                 <span className="text-[.66rem] tracking-[.12em] uppercase font-bold" style={{ color: 'var(--tl-accent)' }}>{info.tagline}</span></span>
             </div>
-            <p className="max-w-[40ch] text-[#89A4C2]">{footerAbout}</p>
+            <p className="max-w-[40ch] text-white/55">{footerAbout}</p>
           </div>
           <div>
             <h4 className="text-white text-[.8rem] tracking-[.1em] uppercase mb-4 font-bold font-sans">Liên kết</h4>
@@ -178,13 +178,13 @@ export function SiteFooter() {
           <div>
             <h4 className="text-white text-[.8rem] tracking-[.1em] uppercase mb-4 font-bold font-sans">Liên hệ</h4>
             <ul className="grid gap-2.5">
-              <li className="flex gap-2"><Phone className="size-4 mt-1 shrink-0 text-[#5E82A8]" /><a href={`tel:${info.phone.replace(/\s/g, '')}`} className="hover:text-white">{info.phone}</a></li>
-              <li className="flex gap-2"><MapPin className="size-4 mt-1 shrink-0 text-[#5E82A8]" /><span>{info.address} {info.addressNote}</span></li>
-              <li className="flex gap-2"><Icon name="clock" className="size-4 mt-1 shrink-0 text-[#5E82A8]" /><span>{info.hours.map((h) => `${h.label}: ${h.value}`).join(' · ')}</span></li>
+              <li className="flex gap-2"><Phone className="size-4 mt-1 shrink-0 text-white/40" /><a href={`tel:${info.phone.replace(/\s/g, '')}`} className="hover:text-white">{info.phone}</a></li>
+              <li className="flex gap-2"><MapPin className="size-4 mt-1 shrink-0 text-white/40" /><span>{info.address} {info.addressNote}</span></li>
+              <li className="flex gap-2"><Icon name="clock" className="size-4 mt-1 shrink-0 text-white/40" /><span>{info.hours.map((h) => `${h.label}: ${h.value}`).join(' · ')}</span></li>
             </ul>
           </div>
         </div>
-        <div className="pt-5 flex justify-between gap-3 flex-wrap text-[.85rem] text-[#6F8DAE]">
+        <div className="pt-5 flex justify-between gap-3 flex-wrap text-[.85rem] text-white/50">
           <span>© {new Date().getFullYear()} Phòng khám {info.clinicName}.</span>
           <span>{info.slogan}</span>
         </div>

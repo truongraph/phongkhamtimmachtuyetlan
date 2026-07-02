@@ -63,7 +63,7 @@ function DoctorImage({ max = 'max-w-[380px]' }: { max?: string }) {
   return (
     <figure className={`relative justify-self-center w-full ${max}`}>
       <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[104%] h-[82%] -z-0"
-        style={{ borderRadius: isCircle ? '999px' : imageRadius(tpl.image), background: 'linear-gradient(160deg,var(--tl-primary),var(--tl-navy))' }} />
+        style={{ borderRadius: isCircle ? '999px' : imageRadius(tpl.image), background: 'linear-gradient(160deg,var(--tl-primary),var(--tl-deep))' }} />
       <div className="absolute -right-3 -top-3 size-16 rounded-full opacity-90 -z-0" style={{ background: 'var(--tl-accent)', filter: 'blur(2px)' }} />
       <div className="relative z-[1] overflow-hidden" style={{ borderRadius: imageRadius(tpl.image), filter: 'drop-shadow(0 24px 40px rgba(8,40,72,.28))' }}>
         <img src={hero.doctorPhotoUrl} alt="Bác sĩ" className="w-full object-cover" style={{ aspectRatio: isCircle ? '1/1' : '83/100', objectPosition: 'top center' }} />
@@ -71,7 +71,7 @@ function DoctorImage({ max = 'max-w-[380px]' }: { max?: string }) {
       {s0 && (
         <div className="absolute z-[2] left-[-14px] bottom-8 bg-white rounded-2xl shadow-xl border px-4 py-3 flex items-center gap-3" style={{ borderColor: 'var(--tl-line)' }}>
           <span className="grid place-items-center size-10 rounded-xl shrink-0" style={{ background: 'var(--tl-soft)', color: 'var(--tl-primary)' }}><Icon name={s0.icon} className="size-5" /></span>
-          <div><b className="block site-head font-bold text-[1.2rem] leading-none" style={{ color: 'var(--tl-navy)' }}>{s0.value}</b><span className="text-[.72rem]" style={{ color: 'var(--tl-slate)' }}>{s0.label}</span></div>
+          <div><b className="block site-head font-bold text-[1.2rem] leading-none" style={{ color: 'var(--tl-primary)' }}>{s0.value}</b><span className="text-[.72rem]" style={{ color: 'var(--tl-slate)' }}>{s0.label}</span></div>
         </div>
       )}
     </figure>
@@ -88,7 +88,7 @@ function HeroText({ center }: { center?: boolean }) {
         <span className="size-2 rounded-full animate-pulse" style={{ background: 'var(--tl-accent)' }} />
         {hero.badgePrefix} <b style={{ color: 'var(--tl-navy)' }}>{hero.badgeStrong}</b> {hero.badgeSuffix}
       </span>
-      <h1 className="site-head font-bold leading-[1.16] text-[clamp(2.1rem,4.6vw,3.2rem)]" style={{ color: 'var(--tl-navy)' }}>
+      <h1 className="site-head font-bold leading-[1.16] text-[clamp(2.1rem,4.6vw,3.2rem)]" style={{ color: 'var(--tl-ink)' }}>
         {hero.title} <span style={{ color: 'var(--tl-accent)' }}>{hero.titleHighlight}</span>
       </h1>
       <p className={`mt-4 text-[1.1rem] ${center ? 'mx-auto' : ''} max-w-[46ch]`} style={{ color: 'var(--tl-slate)' }}>{hero.subtitle}</p>
@@ -118,7 +118,7 @@ function StatsInline() {
       {stats.map((s, i) => (
         <div key={s.id} className="flex items-center gap-3">
           <span className={`grid place-items-center size-11 ${sk.iconShape} shrink-0`} style={sk.icon(i)}><Icon name={s.icon} className="size-6" /></span>
-          <div><b className="block site-head font-bold text-[1.3rem] leading-none" style={{ color: 'var(--tl-navy)' }}>{s.value}</b><span className="text-[.82rem]" style={{ color: 'var(--tl-slate)' }}>{s.label}</span></div>
+          <div><b className="block site-head font-bold text-[1.3rem] leading-none" style={{ color: 'var(--tl-primary)' }}>{s.value}</b><span className="text-[.82rem]" style={{ color: 'var(--tl-slate)' }}>{s.label}</span></div>
         </div>
       ))}
     </div>
@@ -164,7 +164,7 @@ export function BookingForm() {
     <div className="bg-white border overflow-hidden shadow-sm w-full" style={{ borderColor: 'var(--tl-line)', borderRadius: 'calc(var(--tl-radius) + 6px)' }}>
       <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b" style={{ borderColor: 'var(--tl-line)' }}>
         <span className="grid place-items-center size-11 rounded-xl shrink-0" style={{ background: 'var(--tl-soft)', color: 'var(--tl-primary)' }}><CalendarCheck className="size-[22px]" /></span>
-        <div><h3 className="site-head font-bold text-[1.2rem]" style={{ color: 'var(--tl-navy)' }}>{hero.bookingTitle}</h3><p className="text-[.85rem]" style={{ color: 'var(--tl-slate)' }}>{hero.bookingSubtitle}</p></div>
+        <div><h3 className="site-head font-bold text-[1.2rem]" style={{ color: 'var(--tl-ink)' }}>{hero.bookingTitle}</h3><p className="text-[.85rem]" style={{ color: 'var(--tl-slate)' }}>{hero.bookingSubtitle}</p></div>
       </div>
       <form className="p-6 space-y-4" onSubmit={submit}>
         <div className="grid sm:grid-cols-2 gap-3">
@@ -215,7 +215,7 @@ export function BookingBand() {
     <section id="dat-lich-band" className="py-12 lg:py-16" style={{ background: 'var(--tl-tint)' }}>
       <div className="container grid lg:grid-cols-[1fr_.85fr] gap-8 items-center">
         <div>
-          <h2 className="site-head font-bold text-[clamp(1.6rem,3.4vw,2.3rem)]" style={{ color: 'var(--tl-navy)' }}>{hero.bookingTitle} <span style={{ color: 'var(--tl-accent)' }}>ngay hôm nay</span></h2>
+          <h2 className="site-head font-bold text-[clamp(1.6rem,3.4vw,2.3rem)]" style={{ color: 'var(--tl-ink)' }}>{hero.bookingTitle} <span style={{ color: 'var(--tl-accent)' }}>ngay hôm nay</span></h2>
           <p className="mt-3 text-[1.05rem] max-w-[48ch]" style={{ color: 'var(--tl-slate)' }}>{hero.bookingSubtitle}. Điền thông tin để bác sĩ liên hệ xác nhận lịch hẹn phù hợp nhất với bạn.</p>
         </div>
         <div className="max-w-[460px] w-full justify-self-center lg:justify-self-end"><BookingForm /></div>

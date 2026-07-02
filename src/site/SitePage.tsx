@@ -16,13 +16,13 @@ function FinalCta() {
   const info = useContent((s) => s.published.info)
   const tel = info.phone.replace(/\s/g, '')
   return (
-    <section className="relative overflow-hidden py-16 text-center text-white" style={{ background: 'var(--tl-navy)' }}>
+    <section className="relative overflow-hidden py-16 text-center border-t" style={{ background: 'linear-gradient(180deg,var(--tl-soft),var(--tl-tint))', borderColor: 'var(--tl-line)' }}>
       <div className="container relative">
-        <h2 className="site-head font-bold text-white text-[clamp(1.7rem,4vw,2.6rem)]">Chăm sóc trái tim bạn <span style={{ color: '#FF9BA0' }}>ngay hôm nay</span></h2>
-        <p className="mt-4 max-w-[52ch] mx-auto text-[#bcd5ef]">Đừng để những dấu hiệu nhỏ trở thành vấn đề lớn. Đặt lịch khám với bác sĩ chuyên khoa Nội tim mạch.</p>
+        <h2 className="site-head font-bold text-[clamp(1.7rem,4vw,2.6rem)]" style={{ color: 'var(--tl-ink)' }}>Chăm sóc trái tim bạn <span style={{ color: 'var(--tl-accent)' }}>ngay hôm nay</span></h2>
+        <p className="mt-4 max-w-[52ch] mx-auto" style={{ color: 'var(--tl-slate)' }}>Đừng để những dấu hiệu nhỏ trở thành vấn đề lớn. Đặt lịch khám với bác sĩ chuyên khoa Nội tim mạch.</p>
         <div className="mt-8 flex gap-3 justify-center flex-wrap">
           <a href={`tel:${tel}`} className="inline-flex items-center gap-2 rounded-lg px-6 py-3.5 font-semibold text-white" style={{ background: 'var(--tl-accent)' }}><Phone className="size-[18px]" /> Gọi {info.phone}</a>
-          <a href="#dat-lich" className="inline-flex items-center rounded-lg px-6 py-3.5 font-semibold bg-white" style={{ color: 'var(--tl-navy)' }}>Đặt lịch khám</a>
+          <a href="#dat-lich" className="inline-flex items-center rounded-lg px-6 py-3.5 font-semibold text-white" style={{ background: 'var(--tl-primary)' }}>Đặt lịch khám</a>
         </div>
       </div>
     </section>
