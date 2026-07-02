@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Cấu hình hệ thống · Quản trị website</title>
+  <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --fg:#1e2430; --muted:#586274; --faint:#8a93a2; --border:#e7e9ee; --bg:#fff;
+      --sidebar:#fcfcfd; --accent:#0070F4; --accent-soft:#eef4ff; --code:#f7f8fa;
+      --sidew:262px; --tocw:238px; --contentw:760px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:'Inter',system-ui,sans-serif;color:var(--fg);background:var(--bg);font-size:15.5px;line-height:1.72;-webkit-font-smoothing:antialiased}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    ::selection{background:#0070F422}
+
+    /* ---- Điều hướng trái ---- */
+    .side{position:fixed;top:0;left:0;bottom:0;width:var(--sidew);border-right:1px solid var(--border);background:var(--sidebar);overflow-y:auto;padding:20px 16px}
+    .side .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.98rem;padding:2px 8px 2px;letter-spacing:-.01em}
+    .side .brand img{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);object-fit:contain;background:#fff}
+    .nav-h{font-size:.66rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);padding:18px 10px 6px}
+    .switch{display:flex;flex-direction:column;gap:2px}
+    .switch a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;font-size:.9rem;font-weight:500;color:var(--muted)}
+    .switch a:hover{background:#eef1f4;text-decoration:none;color:var(--fg)}
+    .switch a.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+    .switch a .ico{width:17px;height:17px;flex:none;opacity:.85}
+    .switch a.on .ico{opacity:1}
+    .side .div{height:1px;background:var(--border);margin:14px 8px}
+    .side .home{display:inline-flex;align-items:center;gap:7px;padding:8px 10px;font-size:.86rem;color:var(--muted);font-weight:500}
+    .side .home:hover{color:var(--accent);text-decoration:none}
+
+    /* ---- Nội dung ---- */
+    .wrap{margin-left:var(--sidew)}
+    .topbar{display:none}
+    article{max-width:var(--contentw);margin:0 auto;padding:52px 44px 120px}
+    .crumb{font-size:.8rem;color:var(--faint);font-weight:600;margin:0 0 14px}
+    .crumb b{color:var(--muted)}
+    article h1{font-size:2.1rem;font-weight:800;letter-spacing:-.025em;margin:0 0 12px;line-height:1.15}
+    .intro{font-size:1.1rem;color:var(--muted);margin:0}
+    article h2{font-size:1.34rem;font-weight:700;letter-spacing:-.01em;margin:44px 0 12px;padding-top:26px;border-top:1px solid var(--border);scroll-margin-top:24px}
+    article h2:first-of-type{border-top:0;padding-top:6px;margin-top:26px}
+    article h2 .anchor{opacity:0;color:var(--faint);margin-left:8px;font-weight:600;font-size:.85em;transition:opacity .12s}
+    article h2:hover .anchor{opacity:1}
+    article h2 .anchor:hover{color:var(--accent);text-decoration:none}
+    article h3{font-size:1.03rem;font-weight:700;margin:26px 0 6px}
+    article p{margin:12px 0}
+    article ul,article ol{margin:12px 0;padding-left:20px} article li{margin:7px 0}
+    article li::marker{color:var(--faint)}
+    article b{font-weight:600}
+
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85em;background:var(--code);border:1px solid var(--border);padding:.08em .38em;border-radius:5px;color:#2b3444}
+    pre{background:#0f1729;border-radius:12px;padding:16px 18px;overflow:auto;margin:16px 0;font-size:.84rem;line-height:1.65;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+    pre code{background:none;border:0;padding:0;color:#e4e9f2}
+
+    .note{position:relative;border:1px solid var(--border);border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:9px;padding:12px 16px 12px 46px;margin:18px 0;font-size:.95rem}
+    .note::before{content:'i';position:absolute;left:15px;top:12px;width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;font-size:.74rem;font-weight:700;display:grid;place-items:center;font-style:normal;line-height:1}
+    .note.warn{border-left-color:#e0a63c;background:#fff9ef}
+    .note.warn::before{content:'!';background:#e0a63c}
+    .note.tip{border-left-color:#0BB14E;background:#edfaf1}
+    .note.tip::before{content:'✓';background:#0BB14E;font-size:.64rem}
+    .note b{font-weight:700}
+
+    kbd{font-family:inherit;font-size:.8rem;font-weight:600;background:#fff;border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+    footer{border-top:1px solid var(--border);margin-top:48px;padding-top:22px;color:var(--faint);font-size:.85rem}
+
+    /* ---- Mục lục phải ---- */
+    .toc-side{position:fixed;top:0;right:0;width:var(--tocw);height:100vh;overflow-y:auto;padding:56px 22px}
+    .toc-h{font-size:.66rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);padding:0 12px 8px}
+    .toc{display:flex;flex-direction:column;border-left:1px solid var(--border)}
+    .toc a{display:block;padding:5px 12px;margin-left:-1px;font-size:.84rem;color:var(--muted);border-left:2px solid transparent;line-height:1.4}
+    .toc a:hover{color:var(--fg);text-decoration:none}
+    .toc a.active{color:var(--accent);border-left-color:var(--accent);font-weight:600}
+
+    @media(min-width:1181px){ .wrap{margin-right:var(--tocw)} }
+    @media(max-width:1180px){ .toc-side{display:none} }
+    .hamb{display:none}
+    @media(max-width:900px){
+      .side{transform:translateX(-100%);transition:transform .2s;z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.16)}
+      .side.open{transform:none}
+      .wrap{margin-left:0}
+      .topbar{display:flex;align-items:center;gap:12px;height:54px;padding:0 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);z-index:40;font-weight:700}
+      .hamb{display:inline-flex;align-items:center;background:none;border:1px solid var(--border);border-radius:9px;padding:6px 11px;cursor:pointer;font:inherit}
+      article{padding:26px 20px 90px} article h1{font-size:1.72rem}
+    }
+  </style>
+</head>
+<body>
+  <aside class="side" id="side">
+    <div class="brand"><img src="/logo.jpg" alt="" /> Tài liệu</div>
+    <div class="nav-h">Tài liệu</div>
+    <div class="switch">
+      <a href="/huong-dan.html">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+        Hướng dẫn sử dụng
+      </a>
+      <a href="/cau-hinh.html" class="on">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.9 6.91a2.12 2.12 0 0 1-3-3l6.91-6.9a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Cấu hình hệ thống
+      </a>
+    </div>
+    <div class="div"></div>
+    <a href="/admin" class="home">← Về trang quản trị</a>
+  </aside>
+
+  <aside class="toc-side">
+    <div class="toc-h">Trên trang này</div>
+    <nav class="toc">
+      <a href="#tongquan">Tổng quan kỹ thuật</a>
+      <a href="#chay">Cài đặt &amp; chạy</a>
+      <a href="#kientruc">Kiến trúc &amp; dữ liệu</a>
+      <a href="#env">Biến môi trường (.env)</a>
+      <a href="#supabase">Supabase &amp; schema</a>
+      <a href="#tenant">Đăng nhập &amp; tự cấu hình</a>
+      <a href="#multi">Nhiều admin / phòng khám</a>
+      <a href="#rls">Bảo mật (RLS)</a>
+      <a href="#email">Email &amp; xuất báo cáo</a>
+      <a href="#deploy">Triển khai (Vercel)</a>
+      <a href="#reset">Reset dữ liệu</a>
+      <a href="#troubleshoot">Xử lý sự cố</a>
+      <a href="#struct">Cấu trúc thư mục</a>
+    </nav>
+  </aside>
+
+  <div class="wrap">
+    <div class="topbar"><button class="hamb" onclick="document.getElementById('side').classList.toggle('open')">☰</button> Cấu hình hệ thống</div>
+    <article>
+      <div class="crumb"><b>Tài liệu</b> · Cấu hình hệ thống</div>
+      <h1>Cấu hình hệ thống</h1>
+      <p class="intro">Tài liệu kỹ thuật: kiến trúc, Supabase, biến môi trường, đa phòng khám, bảo mật RLS, triển khai và xử lý sự cố.</p>
+
+      <h2 id="tongquan">Tổng quan kỹ thuật <a class="anchor" href="#tongquan">#</a></h2>
+      <p>Web tĩnh SPA: <b>React + TypeScript + Vite + Tailwind CSS + shadcn/ui</b>, state bằng <b>Zustand</b>. Backend tuỳ chọn: <b>Supabase</b> (Postgres + Auth + Realtime). Không cần server riêng.</p>
+      <ul>
+        <li>Chạy 2 chế độ: <b>localStorage</b> (không .env) hoặc <b>online</b> (có .env Supabase).</li>
+        <li>Đa phòng khám (multi-tenant): 1 project Supabase phục vụ nhiều phòng khám, phân biệt bằng <b>slug</b>.</li>
+      </ul>
+
+      <h2 id="chay">Cài đặt &amp; chạy <a class="anchor" href="#chay">#</a></h2>
+      <pre><code>npm install
+npm run dev        # phát triển (http://localhost:5173)
+npm run build      # xuất thư mục dist/
+npm run preview    # xem thử bản build</code></pre>
+
+      <h2 id="kientruc">Kiến trúc &amp; luồng dữ liệu <a class="anchor" href="#kientruc">#</a></h2>
+      <p><b>Draft / Published</b> — store <code>src/store/content.ts</code>:</p>
+      <ul>
+        <li><code>content</code> = bản nháp (admin sửa); <code>published</code> = bản website hiển thị (site đọc <code>s.published</code>).</li>
+        <li><code>set()</code> sửa nháp + bật <code>dirty</code>; <code>save()</code> chép nháp → published + đóng dấu <code>pubTs</code>; <code>discard()</code> huỷ nháp.</li>
+      </ul>
+      <p><b>Đồng bộ</b> (<code>src/lib/sync.ts</code>): đẩy Supabase khi <code>published</code> đổi (đã Lưu), kèm <code>updated_at = pubTs</code>. Khi nhận dữ liệu (fetch đầu &amp; realtime) chỉ áp khi bản server <b>mới hơn</b> (so <code>updated_at</code>) và <b>luôn giữ nguyên bản nháp đang sửa</b> (chống “tự quay về như cũ”). Bố cục &amp; Áp dụng mẫu gọi <code>save()</code> ngay.</p>
+      <div class="note">Khung <b>Xem trước</b> ở trang Bố cục là một iframe chạy chính app (cùng origin, dùng chung <code>localStorage</code>). <code>merge()</code> của store chặn không cho ngữ cảnh khác ghi đè bản nháp chưa lưu.</div>
+
+      <h2 id="env">Biến môi trường (.env) <a class="anchor" href="#env">#</a></h2>
+      <pre><code>VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_...   # hoặc eyJhbGci...
+VITE_SITE_SLUG=tuyetlan                      # slug phòng khám cho bản deploy này</code></pre>
+      <p>Bỏ trống 3 dòng → chế độ localStorage. <code>VITE_SITE_SLUG</code> phải khớp một dòng <code>companies.slug</code> trong DB.</p>
+
+      <h2 id="supabase">Supabase &amp; schema <a class="anchor" href="#supabase">#</a></h2>
+      <ol>
+        <li>Tạo project tại <a href="https://supabase.com" target="_blank" rel="noreferrer">supabase.com</a> (free).</li>
+        <li><b>Chạy schema:</b> SQL Editor → dán toàn bộ <code>supabase/schema.sql</code> → Run. Tạo bảng <code>companies, memberships, site_content, bookings</code> + RLS + hàm <code>setup_clinic</code>. Chạy 1 lần.</li>
+        <li><b>Lấy khoá:</b> Project Settings → API → <code>Project URL</code> + <code>anon/publishable key</code> → điền <code>.env</code>.</li>
+      </ol>
+
+      <h2 id="tenant">Đăng nhập &amp; tự cấu hình <a class="anchor" href="#tenant">#</a></h2>
+      <ol>
+        <li><b>Tạo user admin:</b> Authentication → Users → Add user (email + mật khẩu).</li>
+        <li><b>Đăng nhập <code>/admin</code> lần đầu:</b> app tự chạy <code>ensureTenant</code> — tạo công ty theo <code>VITE_SITE_SLUG</code> (nếu chưa có) và gắn tài khoản vào công ty. Không cần chạy SQL tay.</li>
+      </ol>
+      <p>Làm thủ công (hoặc hàng loạt) vẫn được:</p>
+      <pre><code>select public.setup_clinic('tuyetlan', 'Phòng khám Tim mạch Tuyết Lan', 'email-admin@example.com');</code></pre>
+
+      <h2 id="multi">Nhiều admin / phòng khám <a class="anchor" href="#multi">#</a></h2>
+      <ul>
+        <li><b>Thêm admin cùng phòng khám:</b> tạo user mới ở Authentication → họ đăng nhập <code>/admin</code> là tự gắn vào công ty của slug đó.</li>
+        <li><b>Mở phòng khám mới:</b> bản deploy đặt <code>VITE_SITE_SLUG=slug-moi</code> + tạo user → đăng nhập lần đầu tự tạo công ty mới. Dữ liệu tách theo <code>company_id</code>.</li>
+      </ul>
+
+      <h2 id="rls">Bảo mật (Row Level Security) <a class="anchor" href="#rls">#</a></h2>
+      <ul>
+        <li><b>bookings:</b> khách (anon) chỉ được gửi; chỉ thành viên công ty mới đọc/sửa/xoá.</li>
+        <li><b>site_content:</b> ai cũng đọc (hiển thị website); chỉ thành viên mới ghi.</li>
+        <li><b>companies:</b> đọc công khai (phân giải theo slug); tạo bởi user đã đăng nhập.</li>
+      </ul>
+      <div class="note warn">Admin đăng nhập nhưng chưa là thành viên công ty → danh sách đặt lịch trống. Trang Đặt lịch sẽ hiện cảnh báo kèm lệnh <code>setup_clinic</code>.</div>
+
+      <h2 id="email">Email &amp; xuất báo cáo <a class="anchor" href="#email">#</a></h2>
+      <ul>
+        <li><b>Email đặt lịch:</b> dán Web3Forms Access Key trong Sao lưu &amp; Email (không cần server). Có sẵn hook gọi Edge Function <code>send-booking-email</code> nếu triển khai.</li>
+        <li><b>Excel:</b> SheetJS (<code>xlsx</code>) tạo .xlsx thật (cột + auto-filter), nạp động khi bấm.</li>
+        <li><b>PDF:</b> mở cửa sổ báo cáo &amp; dùng chức năng in của trình duyệt — in đúng màu/định dạng như trên màn hình, tự đóng cửa sổ khi in xong/huỷ.</li>
+      </ul>
+
+      <h2 id="deploy">Triển khai (Vercel) <a class="anchor" href="#deploy">#</a></h2>
+      <ol>
+        <li>Đẩy mã nguồn lên <b>GitHub</b>.</li>
+        <li><a href="https://vercel.com" target="_blank" rel="noreferrer">vercel.com</a> → Add New Project → chọn repo (tự nhận Vite).</li>
+        <li><b>Environment Variables:</b> <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_ANON_KEY</code>, <code>VITE_SITE_SLUG</code>.</li>
+        <li>Deploy. <code>vercel.json</code> đã rewrite mọi path về <code>index.html</code> để <code>/admin</code> hoạt động khi F5.</li>
+      </ol>
+
+      <h2 id="reset">Reset dữ liệu <a class="anchor" href="#reset">#</a></h2>
+      <p><b>Xoá trình duyệt:</b> Sao lưu &amp; Email → “Xoá dữ liệu trình duyệt” (xoá các khoá <code>tl_*</code> trong localStorage).</p>
+      <p><b>Xoá sạch database</b> (giữ bảng/RLS/hàm), rồi đăng nhập lại để tự dựng lại:</p>
+      <pre><code>truncate table public.companies cascade;</code></pre>
+
+      <h2 id="troubleshoot">Xử lý sự cố <a class="anchor" href="#troubleshoot">#</a></h2>
+      <h3>Đặt lịch không hiện trong admin</h3>
+      <ul>
+        <li>Tài khoản chưa gắn công ty → đăng xuất/đăng nhập lại (tự gắn), hoặc chạy <code>setup_clinic('slug','tên','email')</code>.</li>
+        <li>Kiểm tra Console (<kbd>F12</kbd>) dòng <code>[backend]</code>.</li>
+      </ul>
+      <h3>Website trống / sai nội dung</h3>
+      <p>Kiểm tra <code>VITE_SITE_SLUG</code> khớp <code>companies.slug</code> đã tạo.</p>
+      <h3>Sửa nội dung không thấy đổi</h3>
+      <p>Nhớ bấm <b>Lưu thay đổi</b>; nếu online, tài khoản phải là thành viên công ty để ghi được.</p>
+
+      <h2 id="struct">Cấu trúc thư mục <a class="anchor" href="#struct">#</a></h2>
+      <pre><code>src/
+  store/        content.ts (draft/published), auth.ts, bookings.ts
+  lib/          backend.ts (Supabase), sync.ts, vn-address.ts, vn-wards.ts, fonts.ts, format.ts
+  site/         SitePage, SiteChrome, ThemeStyle, templates.ts, sections/
+  admin/        AdminLayout, Login, parts.tsx, pages/ (trình soạn thảo)
+  components/ui shadcn/ui (button, dialog, alert-dialog, combobox, popover, ...)
+supabase/schema.sql    # bảng + RLS + hàm setup_clinic
+public/huong-dan.html  # hướng dẫn người dùng
+public/cau-hinh.html   # tài liệu này</code></pre>
+
+      <footer>© <span id="y"></span> Quản trị website Phòng khám · Cấu hình hệ thống. Hướng dẫn người dùng: <a href="/huong-dan.html">Hướng dẫn sử dụng</a>.</footer>
+    </article>
+  </div>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+    var obs = new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){
+      document.querySelectorAll('.toc a').forEach(function(l){ l.classList.remove('active'); });
+      var a=document.querySelector('.toc a[href="#'+e.target.id+'"]'); if(a) a.classList.add('active');
+    }}); }, { rootMargin:'-10% 0px -80% 0px' });
+    document.querySelectorAll('h2[id]').forEach(function(s){ obs.observe(s); });
+    document.querySelectorAll('.toc a').forEach(function(a){ a.addEventListener('click', function(){ if(window.innerWidth<=900) document.getElementById('side').classList.remove('open'); }); });
+  </script>
+</body>
+</html>

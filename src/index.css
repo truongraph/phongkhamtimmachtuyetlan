@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* shadcn tokens (admin UI) */
+    --background: 0 0% 100%;
+    --foreground: 214 60% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 214 60% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 60% 16%;
+    --primary: 213 100% 48%;          /* #0070F4 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 214 60% 20%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 214 60% 20%;
+    --success: 144 88% 37%;           /* #0BB14E */
+    --success-foreground: 0 0% 100%;
+    --destructive: 356 76% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 213 100% 52%;
+    --radius: 0.65rem;
+
+    /* public site theme (overridable from admin) */
+    --tl-primary: #12579e;
+    --tl-navy: #0b3b70;
+    --tl-accent: #d81e28;
+    --tl-soft: #eaf2fb;
+    --tl-tint: #f3f8fd;
+    --tl-ink: #12283f;
+    --tl-slate: #5a6e85;
+    --tl-line: #e0eaf3;
+    --tl-radius: 14px;
+  }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+/* public site scoped helpers */
+.tl-site h1, .tl-site h2, .tl-site h3, .tl-site h4, .tl-site .site-head {
+  font-family: var(--tl-head, 'Lora', Georgia, serif);
+  letter-spacing: -0.01em;
+}
