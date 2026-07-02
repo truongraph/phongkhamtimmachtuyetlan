@@ -113,7 +113,7 @@ export interface SiteContent {
 const uid = () => Math.random().toString(36).slice(2, 9)
 
 export const DEFAULT_CONTENT: SiteContent = {
-  theme: { primary: '#12579e', navy: '#0b3b70', accent: '#d81e28', headingFont: 'display', radius: 14, fontHeading: 'Lora', fontBody: 'Inter' },
+  theme: { primary: '#1151E7', navy: '#234DBB', accent: '#d81e28', headingFont: 'display', radius: 14, fontHeading: 'Lora', fontBody: 'Inter' },
   template: 'classic',
   seo: {
     title: 'Phòng khám Tim mạch Tuyết Lan · ThS. BSCKII. Trần Thị Tuyết Lan',
