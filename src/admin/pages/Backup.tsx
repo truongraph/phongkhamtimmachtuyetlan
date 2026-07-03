@@ -9,7 +9,7 @@ import { ConfirmDialog } from '@/components/ui/alert-dialog'
 import { PageHead, Field } from '../parts'
 import { isBackend, fetchBookingEmail, saveBookingEmail, sendTestBookingEmail, DEFAULT_EMAIL_CFG, type BookingEmailCfg } from '@/lib/backend'
 import { toast } from 'sonner'
-import { RotateCcw, Download, Upload, Trash2, Mail, Send, Loader2, Check } from 'lucide-react'
+import { RotateCcw, Download, Upload, Trash2, Mail, Send, Loader2, Check, Eye, EyeOff } from 'lucide-react'
 
 function LabeledInput({ label, value, onChange, placeholder, type = 'text' }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string }) {
   return (
@@ -27,6 +27,7 @@ function SmtpEmailCard() {
   const [cfg, setCfg] = useState<BookingEmailCfg>(DEFAULT_EMAIL_CFG)
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
+  const [showPass, setShowPass] = useState(false)
   const upd = (p: Partial<BookingEmailCfg>) => setCfg((s) => ({ ...s, ...p }))
 
   useEffect(() => {
@@ -79,7 +80,15 @@ function SmtpEmailCard() {
 
         <div className="grid sm:grid-cols-2 gap-4">
           <LabeledInput label="Gmail dùng để gửi" value={cfg.smtp_user} onChange={(v) => upd({ smtp_user: v })} placeholder="ban@gmail.com" />
-          <LabeledInput label="Mật khẩu ứng dụng (App Password)" type="password" value={cfg.smtp_pass} onChange={(v) => upd({ smtp_pass: v })} placeholder="16 ký tự — không phải mật khẩu Gmail" />
+          <div className="space-y-1.5">
+            <Label>Mật khẩu ứng dụng (App Password)</Label>
+            <div className="relative">
+              <Input type={showPass ? 'text' : 'password'} value={cfg.smtp_pass} onChange={(e) => upd({ smtp_pass: e.target.value })} placeholder="16 ký tự — không phải mật khẩu Gmail" className="pr-9" autoComplete="off" />
+              <button type="button" onClick={() => setShowPass((s) => !s)} tabIndex={-1} aria-label={showPass ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                {showPass ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
+          </div>
           <LabeledInput label="Email nhận thông báo" value={cfg.mail_to} onChange={(v) => upd({ mail_to: v })} placeholder="mặc định = Gmail ở trên" />
           <LabeledInput label="Tên hiển thị người gửi" value={cfg.mail_from} onChange={(v) => upd({ mail_from: v })} placeholder={clinicName} />
         </div>
