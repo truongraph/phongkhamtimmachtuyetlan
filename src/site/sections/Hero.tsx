@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useContent } from '@/store/content'
 import { useTemplate, useSkin, type ImageShape } from '../templates'
 import { useBookings, sendBookingEmail } from '@/store/bookings'
 import { sendBookingEmailEdge } from '@/lib/backend'
 import { Icon } from '@/lib/icons'
-import { Phone, Check, CalendarCheck } from 'lucide-react'
+import { Phone, Check, CalendarCheck, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -104,7 +105,7 @@ function HeroText({ center }: { center?: boolean }) {
         <a href={`tel:${tel}`} className="inline-flex items-center justify-center gap-2 px-6 py-3.5 font-semibold text-white shadow-[0_8px_20px_rgba(0,0,0,.16)]" style={{ background: 'var(--tl-accent)', borderRadius: 'var(--tl-btn)' }}>
           <Phone className="size-[18px]" /> Gọi: {info.phone}
         </a>
-        <a href="#dat-lich" className="inline-flex items-center justify-center px-6 py-3.5 font-semibold bg-white border" style={{ borderColor: 'var(--tl-line)', color: 'var(--tl-primary)', borderRadius: 'var(--tl-btn)' }}>Đặt lịch khám</a>
+        <a href="#dat-lich" onClick={(e) => { e.preventDefault(); openBooking() }} className="inline-flex items-center justify-center px-6 py-3.5 font-semibold bg-white border" style={{ borderColor: 'var(--tl-line)', color: 'var(--tl-primary)', borderRadius: 'var(--tl-btn)' }}>Đặt lịch khám</a>
       </div>
     </div>
   )
@@ -126,7 +127,7 @@ function StatsInline() {
 }
 
 export function BookingForm() {
-  const { hero, info, services, booking } = useContent((s) => s.published)
+  const { hero, info, services, booking, theme } = useContent((s) => s.published)
   const addBooking = useBookings((s) => s.add)
   const tel = info.phone.replace(/\s/g, '')
   const [f, setF] = useState({ name: '', phone: '', service: '', date: '', time: 'Chiều (17:00–20:00)', note: '' })
@@ -150,7 +151,7 @@ export function BookingForm() {
     const payload = { name: f.name.trim(), phone: f.phone.trim(), service: f.service || 'Tư vấn chung', date: f.date, time: f.time, note: f.note.trim() }
     const saved = await addBooking(payload)
     const emailed = await sendBookingEmail(booking, payload)
-    sendBookingEmailEdge(payload)
+    sendBookingEmailEdge({ ...payload, clinic: info.clinicName, primary: theme.primary, accent: theme.accent })
     setSending(false)
     if (saved || emailed) {
       setMsg({ ok: true, text: `Cảm ơn ${payload.name}! Phòng khám đã nhận yêu cầu và sẽ liên hệ số ${payload.phone} để xác nhận lịch hẹn.` })
@@ -221,6 +222,48 @@ export function BookingBand() {
         <div className="max-w-[460px] w-full justify-self-center lg:justify-self-end"><BookingForm /></div>
       </div>
     </section>
+  )
+}
+
+/** Mở popup đặt lịch từ bất kỳ nút nào (gửi sự kiện toàn cục). */
+export function openBooking() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('tl:open-booking'))
+}
+
+/** Popup đặt lịch — tái dùng BookingForm, mở khi bấm nút "Đặt lịch khám". */
+export function BookingModal() {
+  const [open, setOpen] = useState(false)
+  const [entered, setEntered] = useState(false)
+  const close = () => { setEntered(false); setTimeout(() => setOpen(false), 300) }
+
+  useEffect(() => {
+    const onOpen = () => setOpen(true)
+    window.addEventListener('tl:open-booking', onOpen)
+    return () => window.removeEventListener('tl:open-booking', onOpen)
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const id = requestAnimationFrame(() => setEntered(true))
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    window.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden' // khoá cuộn nền khi mở popup
+    return () => { cancelAnimationFrame(id); window.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
+  }, [open])
+
+  if (!open) return null
+  return createPortal(
+    // class "tl-site" để nhận biến màu --tl-* (popup nằm ngoài cây .tl-site do portal ra body)
+    <div className={`tl-site fixed inset-0 z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto transition-opacity duration-300 ${entered ? 'opacity-100' : 'opacity-0'}`}
+      style={{ background: 'rgba(8,20,40,.55)', backdropFilter: 'blur(3px)' }} onClick={close}>
+      <div className={`relative w-full max-w-md my-auto transition-all duration-300 ${entered ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-95'}`} onClick={(e) => e.stopPropagation()}>
+        <button type="button" onClick={close} aria-label="Đóng" className="absolute -top-3 -right-3 z-10 grid place-items-center size-9 rounded-full bg-white shadow-lg border hover:bg-secondary" style={{ borderColor: 'var(--tl-line)' }}>
+          <X className="size-5" style={{ color: 'var(--tl-slate)' }} />
+        </button>
+        <BookingForm />
+      </div>
+    </div>,
+    document.body,
   )
 }
 

@@ -98,6 +98,31 @@ begin
 end $$;
 
 -- ============================================================
+--  5) CẤU HÌNH EMAIL ĐẶT LỊCH (SMTP Gmail) — RIÊNG TƯ
+--  Chứa App Password nên KHÔNG cho public đọc: chỉ thành viên công ty
+--  (đăng nhập admin) đọc/ghi; Edge Function dùng service_role để đọc khi gửi.
+-- ============================================================
+create table if not exists public.booking_email (
+  company_id  uuid primary key references public.companies(id) on delete cascade,
+  enabled     boolean not null default false,
+  smtp_host   text    not null default 'smtp.gmail.com',
+  smtp_port   int     not null default 465,
+  smtp_user   text,                 -- địa chỉ Gmail dùng để gửi
+  smtp_pass   text,                 -- App Password 16 ký tự (Gmail)
+  mail_from   text,                 -- tên hiển thị người gửi (vd: Phòng khám Tuyết Lan)
+  mail_to     text,                 -- email nhận thông báo đặt lịch
+  updated_at  timestamptz not null default now()
+);
+alter table public.booking_email enable row level security;
+drop policy if exists be_select on public.booking_email;
+drop policy if exists be_insert on public.booking_email;
+drop policy if exists be_update on public.booking_email;
+-- CHỈ thành viên công ty được đọc/ghi (KHÔNG mở cho anon/public vì chứa mật khẩu).
+create policy be_select on public.booking_email for select to authenticated using (public.is_member(company_id));
+create policy be_insert on public.booking_email for insert to authenticated with check (public.is_member(company_id));
+create policy be_update on public.booking_email for update to authenticated using (public.is_member(company_id)) with check (public.is_member(company_id));
+
+-- ============================================================
 --  HÀM TẠO NHANH 1 PHÒNG KHÁM (công ty + gắn admin) — CHẠY 1 LỆNH
 --  Tạo hàm này 1 lần. Sau đó mỗi phòng khám chỉ cần gọi 1 dòng.
 -- ============================================================

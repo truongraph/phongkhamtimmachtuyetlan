@@ -7,7 +7,7 @@ import { Popover } from '@/components/ui/popover'
 import {
   LayoutDashboard, Blocks, Home, User, Stethoscope, ShieldCheck, HeartPulse,
   GraduationCap, MapPin, Settings, KeyRound, LogOut, ExternalLink, Menu, X, CalendarClock, Palette,
-  BookOpen, Search, ChevronDown, UserRound, PanelLeft, DatabaseBackup, Check, Undo2, Wrench,
+  BookOpen, Search, ChevronDown, UserRound, PanelLeft, DatabaseBackup, Check, Undo2, Wrench, Bell, Sparkles,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -16,6 +16,8 @@ import { useBookings } from '@/store/bookings'
 import { normalizeVN } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { SEARCH_INDEX } from './searchIndex'
+import { CHANGELOG } from '@/lib/changelog'
 
 export function RequireAuth({ children }: { children: JSX.Element }) {
   const loggedIn = useAuth((s) => s.loggedIn)
@@ -47,6 +49,97 @@ const NAV = [
 
 type PageItem = { to: string; label: string; icon: typeof Home }
 const PAGES: PageItem[] = NAV.filter((n) => 'to' in n).map((n) => ({ to: (n as any).to, label: (n as any).label, icon: (n as any).icon }))
+// Icon theo route (để kết quả tìm kiếm mục con vẫn có icon của trang chứa nó)
+const ICON_BY_ROUTE: Record<string, typeof Home> = { '/admin/account': KeyRound }
+PAGES.forEach((p) => { ICON_BY_ROUTE[p.to] = p.icon })
+
+/** Khoảng thời gian tương đối gọn (vd: "5 phút trước"). */
+function timeAgo(ts: number): string {
+  const s = Math.max(0, Math.floor((Date.now() - ts) / 1000))
+  if (s < 60) return 'Vừa xong'
+  const m = Math.floor(s / 60); if (m < 60) return `${m} phút trước`
+  const h = Math.floor(m / 60); if (h < 24) return `${h} giờ trước`
+  const d = Math.floor(h / 24); if (d < 30) return `${d} ngày trước`
+  return new Date(ts).toLocaleDateString('vi-VN')
+}
+
+/** Chuông thông báo: liệt kê các đặt lịch mới nhất, bấm để tới trang Đặt lịch. */
+function NotifyBell() {
+  const nav = useNavigate()
+  const items = useBookings((s) => s.items)
+  const [open, setOpen] = useState(false)
+  const newCount = items.filter((i) => i.status === 'new').length
+  const recent = [...items].sort((a, b) => b.createdAt - a.createdAt).slice(0, 6)
+  const go = () => { setOpen(false); nav('/admin/bookings') }
+  return (
+    <Popover open={open} onOpenChange={setOpen} align="end" className="w-[21rem] p-0"
+      trigger={
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-label="Thông báo đặt lịch"
+          className="relative grid place-items-center size-9 rounded-full border hover:bg-secondary transition-colors">
+          <Bell className="size-[18px] text-foreground/70" />
+          {newCount > 0 && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-destructive text-destructive-foreground text-[.6rem] font-bold ring-2 ring-background">{newCount > 9 ? '9+' : newCount}</span>}
+        </button>
+      }>
+      <div className="flex items-center justify-between px-3.5 py-2.5 border-b">
+        <div className="font-semibold text-sm">Đặt lịch mới nhất</div>
+        {newCount > 0 && <span className="text-[.68rem] font-bold text-destructive bg-destructive/10 rounded-full px-2 py-0.5">{newCount} mới</span>}
+      </div>
+      <div className="max-h-80 overflow-y-auto">
+        {recent.length === 0
+          ? <div className="px-3 py-10 text-center text-sm text-muted-foreground">Chưa có đặt lịch nào</div>
+          : recent.map((b) => (
+            <button key={b.id} type="button" onClick={go} className="flex w-full items-start gap-3 px-3.5 py-2.5 text-left hover:bg-accent border-b last:border-0">
+              <span className={cn('mt-0.5 grid place-items-center size-8 rounded-full shrink-0', b.status === 'new' ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-muted-foreground')}><CalendarClock className="size-4" /></span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2"><b className="text-sm truncate">{b.name}</b>{b.status === 'new' && <span className="text-[.58rem] font-bold text-destructive tracking-wide shrink-0">MỚI</span>}</div>
+                <div className="text-xs text-muted-foreground truncate">{b.service || 'Tư vấn chung'} · {b.phone}</div>
+                <div className="text-[.68rem] text-muted-foreground mt-0.5">{timeAgo(b.createdAt)}</div>
+              </div>
+            </button>
+          ))}
+      </div>
+      <button type="button" onClick={go} className="w-full text-center text-sm font-medium text-primary py-2.5 border-t hover:bg-accent">Xem tất cả đặt lịch</button>
+    </Popover>
+  )
+}
+
+/** Nhật ký cập nhật (dev log) — chấm đỏ nếu có bản mới chưa xem. */
+function DevLog() {
+  const latest = CHANGELOG[0]?.date ?? ''
+  const [open, setOpen] = useState(false)
+  const [seen, setSeen] = useState(() => (typeof localStorage !== 'undefined' ? localStorage.getItem('tl_devlog_seen') : null))
+  const hasNew = !!latest && seen !== latest
+  const onOpenChange = (o: boolean) => { setOpen(o); if (o && latest) { localStorage.setItem('tl_devlog_seen', latest); setSeen(latest) } }
+  return (
+    <Popover open={open} onOpenChange={onOpenChange} align="end" className="w-[22rem] p-0"
+      trigger={
+        <button type="button" onClick={() => onOpenChange(!open)} aria-label="Nhật ký cập nhật"
+          className="relative grid place-items-center size-9 rounded-full border hover:bg-secondary transition-colors">
+          <Sparkles className="size-[18px] text-foreground/70" />
+          {hasNew && <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-primary ring-2 ring-background" />}
+        </button>
+      }>
+      <div className="px-3.5 py-2.5 border-b font-semibold text-sm flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Nhật ký cập nhật</div>
+      <div className="max-h-[26rem] overflow-y-auto p-3.5 space-y-5">
+        {CHANGELOG.map((c, i) => (
+          <div key={i}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[.72rem] font-bold text-primary bg-primary/10 rounded-full px-2 py-0.5">{c.date}</span>
+              <span className="text-xs font-medium text-muted-foreground">{c.title}</span>
+            </div>
+            <ul className="space-y-1.5">
+              {c.notes.map((n, j) => (
+                <li key={j} className="text-[.82rem] text-foreground/80 flex gap-2 leading-relaxed">
+                  <span className="mt-1.5 size-1.5 rounded-full bg-primary/60 shrink-0" />{n}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </Popover>
+  )
+}
 
 type NavItem = { to: string; icon: typeof Home; label: string; end?: boolean; badge?: boolean }
 
@@ -82,13 +175,19 @@ function SideNavLink({ item, mini, count, onClick }: { item: NavItem; mini: bool
   )
 }
 
-/** Ô tìm nhanh trang quản trị (topbar trái). */
+/** Ô tìm nhanh: gõ tên trang HOẶC tên mục/trường bên trong (vd "ảnh", "màu", "giờ làm việc"). */
+type SearchResult = { label: string; page: string; to: string }
 function FormSearch() {
   const nav = useNavigate()
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const nq = normalizeVN(q)
-  const results = (nq ? PAGES.filter((p) => normalizeVN(p.label).includes(nq)) : PAGES).slice(0, 8)
+  const results: SearchResult[] = nq
+    ? SEARCH_INDEX
+        .filter((it) => normalizeVN(`${it.label} ${it.page} ${it.keywords || ''}`).includes(nq))
+        .slice(0, 10)
+        .map((it) => ({ label: it.label, page: it.page, to: it.to }))
+    : PAGES.map((p) => ({ label: p.label, page: '', to: p.to })).slice(0, 10)
   const go = (to: string) => { nav(to); setOpen(false); setQ('') }
   return (
     <Popover open={open} onOpenChange={setOpen} matchWidth
@@ -100,19 +199,26 @@ function FormSearch() {
             onFocus={() => setOpen(true)}
             onChange={(e) => { setQ(e.target.value); setOpen(true) }}
             onKeyDown={(e) => { if (e.key === 'Enter' && results[0]) go(results[0].to) }}
-            placeholder="Tìm trang quản trị…"
+            placeholder="Tìm trang hoặc mục (vd: ảnh, màu, SEO…)"
             className="h-9 pl-8 bg-secondary/60 border-transparent focus-visible:bg-background"
           />
         </div>
       }>
-      <div className="max-h-72 overflow-y-auto p-1">
+      <div className="max-h-80 overflow-y-auto p-1">
         {results.length === 0
-          ? <div className="px-2 py-6 text-center text-sm text-muted-foreground">Không tìm thấy trang</div>
-          : results.map((r) => (
-            <button key={r.to} type="button" onClick={() => go(r.to)} className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-left hover:bg-accent">
-              <r.icon className="size-4 text-primary shrink-0" /> {r.label}
-            </button>
-          ))}
+          ? <div className="px-2 py-6 text-center text-sm text-muted-foreground">Không tìm thấy mục nào</div>
+          : results.map((r, i) => {
+            const Icon = ICON_BY_ROUTE[r.to] ?? Search
+            return (
+              <button key={`${r.to}-${i}`} type="button" onClick={() => go(r.to)} className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left hover:bg-accent">
+                <Icon className="size-4 text-primary shrink-0" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm truncate">{r.label}</span>
+                  {r.page && <span className="block text-[.7rem] text-muted-foreground truncate">trong {r.page}</span>}
+                </span>
+              </button>
+            )
+          })}
       </div>
     </Popover>
   )
@@ -191,6 +297,8 @@ export function AdminLayout() {
           <div className="hidden sm:block w-56 md:w-72"><FormSearch /></div>
 
           <div className="ml-auto flex items-center gap-2">
+            <NotifyBell />
+            <DevLog />
             <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex"><Link to="/" target="_blank"><ExternalLink className="size-4" /> Xem website</Link></Button>
 
             {/* Phải: menu tài khoản — dựng trên cùng Popover với Combobox cho đồng bộ giao diện */}

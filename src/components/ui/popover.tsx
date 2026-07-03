@@ -61,8 +61,8 @@ export function Popover({
         <div
           ref={panelRef}
           style={align === 'end'
-            ? { position: 'fixed', top: rect.top, right: window.innerWidth - rect.right, minWidth: matchWidth ? rect.width : undefined, zIndex: 60 }
-            : { position: 'fixed', top: rect.top, left: rect.left, minWidth: matchWidth ? rect.width : undefined, zIndex: 60 }}
+            ? { position: 'fixed', top: rect.top, right: window.innerWidth - rect.right, minWidth: matchWidth ? rect.width : undefined, zIndex: 80 }
+            : { position: 'fixed', top: rect.top, left: rect.left, minWidth: matchWidth ? rect.width : undefined, zIndex: 80 }}
           className={cn('rounded-md border bg-popover text-popover-foreground shadow-lg animate-in fade-in-0 zoom-in-95', className)}
         >
           {children}

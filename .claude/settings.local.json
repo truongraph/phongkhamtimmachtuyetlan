@@ -48,7 +48,11 @@
       "Bash(cd \"d:/PROJECT KMK COMPANY/WEBSITE/phongkhamtimmachtuyetlan\" *)",
       "Bash(node -e \"try{require.resolve\\('playwright'\\);console.log\\('playwright OK'\\)}catch{try{require.resolve\\('puppeteer'\\);console.log\\('puppeteer OK'\\)}catch{console.log\\('no browser tool'\\)}}\")",
       "Bash(pkill -f vite)",
-      "Bash(node -e *)"
+      "Bash(node -e *)",
+      "Bash(find supabase *)",
+      "Bash(ls -la supabase/)",
+      "Bash(grep -rn \"verify_jwt\" supabase/)",
+      "Bash(npx supabase *)"
     ]
   }
 }

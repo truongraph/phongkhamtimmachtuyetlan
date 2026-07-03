@@ -50,3 +50,15 @@ body { margin: 0; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoo
   font-family: var(--tl-head, 'Lora', Georgia, serif);
   letter-spacing: -0.01em;
 }
+
+/* Nút gọi nổi: icon "lắc lắc" theo chu kỳ rồi nghỉ */
+@keyframes tl-wiggle {
+  0%, 42%, 100% { transform: rotate(0deg); }
+  6%  { transform: rotate(-15deg); }
+  14% { transform: rotate(13deg); }
+  22% { transform: rotate(-10deg); }
+  30% { transform: rotate(7deg); }
+  38% { transform: rotate(-3deg); }
+}
+.tl-wiggle { animation: tl-wiggle 2s ease-in-out infinite; transform-origin: 50% 55%; }
+@media (prefers-reduced-motion: reduce) { .tl-wiggle { animation: none; } }

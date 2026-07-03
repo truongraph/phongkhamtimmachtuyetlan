@@ -1,8 +1,8 @@
 import { useContent } from '@/store/content'
 import { ThemeStyle } from './ThemeStyle'
 import { useTemplate } from './templates'
-import { SiteHeader, SiteFooter } from './SiteChrome'
-import { Hero, BookingBand } from './sections/Hero'
+import { SiteHeader, SiteFooter, FloatingWidgets } from './SiteChrome'
+import { Hero, BookingBand, BookingModal, openBooking } from './sections/Hero'
 import { Stats, Why, Services, About, Specialties, Journey, Contact } from './sections/Sections'
 import { SeoHead } from './Ecg'
 import { Phone } from 'lucide-react'
@@ -22,7 +22,7 @@ function FinalCta() {
         <p className="mt-4 max-w-[52ch] mx-auto" style={{ color: 'var(--tl-slate)' }}>Đừng để những dấu hiệu nhỏ trở thành vấn đề lớn. Đặt lịch khám với bác sĩ chuyên khoa Nội tim mạch.</p>
         <div className="mt-8 flex gap-3 justify-center flex-wrap">
           <a href={`tel:${tel}`} className="inline-flex items-center gap-2 rounded-lg px-6 py-3.5 font-semibold text-white" style={{ background: 'var(--tl-accent)' }}><Phone className="size-[18px]" /> Gọi {info.phone}</a>
-          <a href="#dat-lich" className="inline-flex items-center rounded-lg px-6 py-3.5 font-semibold text-white" style={{ background: 'var(--tl-primary)' }}>Đặt lịch khám</a>
+          <a href="#dat-lich" onClick={(e) => { e.preventDefault(); openBooking() }} className="inline-flex items-center rounded-lg px-6 py-3.5 font-semibold text-white" style={{ background: 'var(--tl-primary)' }}>Đặt lịch khám</a>
         </div>
       </div>
     </section>
@@ -48,6 +48,8 @@ export default function SitePage() {
         <FinalCta />
       </main>
       <SiteFooter />
+      <FloatingWidgets />
+      <BookingModal />
     </div>
   )
 }

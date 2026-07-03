@@ -1,0 +1,6 @@
+# Cấu hình Supabase CLI cho các Edge Function của dự án.
+# send-booking-email được gọi từ TRANG WEB CÔNG KHAI (khách vãng lai, không đăng nhập)
+# nên PHẢI tắt kiểm tra JWT — nếu không, request thăm dò CORS (OPTIONS) sẽ bị cổng
+# trả 401 và trình duyệt báo "preflight doesn't pass access control check".
+[functions.send-booking-email]
+verify_jwt = false

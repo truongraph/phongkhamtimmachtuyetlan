@@ -109,12 +109,63 @@ export async function insertBooking(b: { name: string; phone: string; service: s
   const { error } = await supabase.from('bookings').insert({ ...b, company_id: cid })
   return { ok: !error }
 }
-export async function sendBookingEmailEdge(b: { name: string; phone: string; service: string; date: string; time: string; note?: string }) {
+export async function sendBookingEmailEdge(b: { name: string; phone: string; service: string; date: string; time: string; note?: string; clinic?: string; primary?: string; accent?: string }) {
   if (!supabase) return { ok: false }
+  const cid = await resolveActiveCompany()
   try {
-    const { error } = await supabase.functions.invoke('send-booking-email', { body: b })
+    const { error } = await supabase.functions.invoke('send-booking-email', { body: { ...b, company_id: cid } })
     return { ok: !error }
   } catch (e) { console.warn('[backend] sendBookingEmailEdge', e); return { ok: false } }
+}
+
+/* ---------- CẤU HÌNH EMAIL ĐẶT LỊCH (SMTP Gmail) ---------- */
+export interface BookingEmailCfg {
+  enabled: boolean
+  smtp_host: string
+  smtp_port: number
+  smtp_user: string
+  smtp_pass: string
+  mail_from: string
+  mail_to: string
+}
+export const DEFAULT_EMAIL_CFG: BookingEmailCfg = {
+  enabled: false, smtp_host: 'smtp.gmail.com', smtp_port: 465, smtp_user: '', smtp_pass: '', mail_from: '', mail_to: '',
+}
+
+/** Đọc cấu hình SMTP của công ty đang đăng nhập (null nếu chưa cấu hình/không có backend). */
+export async function fetchBookingEmail(): Promise<BookingEmailCfg | null> {
+  if (!supabase) return null
+  const cid = await resolveActiveCompany(); if (!cid) return null
+  const { data, error } = await supabase.from('booking_email').select('*').eq('company_id', cid).maybeSingle()
+  if (error) { console.warn('[backend] fetchBookingEmail', error.message); return null }
+  return data ? { ...DEFAULT_EMAIL_CFG, ...(data as any) } : null
+}
+
+/** Lưu cấu hình SMTP cho công ty đang đăng nhập. */
+export async function saveBookingEmail(cfg: BookingEmailCfg): Promise<{ ok: boolean; msg?: string }> {
+  if (!supabase) return { ok: false, msg: 'Chưa cấu hình máy chủ (Supabase).' }
+  const cid = await resolveActiveCompany(); if (!cid) return { ok: false, msg: 'Chưa xác định được công ty.' }
+  const { error } = await supabase.from('booking_email').upsert(
+    { company_id: cid, ...cfg, smtp_port: Number(cfg.smtp_port) || 465, updated_at: new Date().toISOString() },
+    { onConflict: 'company_id' },
+  )
+  if (!error) return { ok: true }
+  const missing = /schema cache|does not exist|booking_email/i.test(error.message)
+  return { ok: false, msg: missing ? 'Chưa tạo bảng booking_email trên Supabase. Hãy chạy đoạn SQL (SQL Editor) rồi thử lại.' : error.message }
+}
+
+/** Gửi 1 email KIỂM TRA theo cấu hình đã lưu. */
+export async function sendTestBookingEmail(clinic: string, primary?: string, accent?: string): Promise<{ ok: boolean; msg?: string }> {
+  if (!supabase) return { ok: false, msg: 'Chưa cấu hình máy chủ (Supabase).' }
+  const cid = await resolveActiveCompany(); if (!cid) return { ok: false, msg: 'Chưa xác định được công ty.' }
+  try {
+    const { data, error } = await supabase.functions.invoke('send-booking-email', {
+      body: { name: 'Khách kiểm tra', phone: '0900 000 000', service: 'Kiểm tra cấu hình email', note: 'Đây là email thử — nếu bạn nhận được nghĩa là SMTP đã hoạt động.', company_id: cid, clinic, primary, accent },
+    })
+    if (error) return { ok: false, msg: 'Gửi thất bại — kiểm tra lại email/App Password.' }
+    if (data && (data as any).error) return { ok: false, msg: (data as any).error }
+    return { ok: true }
+  } catch (e) { return { ok: false, msg: String(e) } }
 }
 export async function fetchBookings(): Promise<RemoteBooking[] | null> {
   if (!supabase) return null

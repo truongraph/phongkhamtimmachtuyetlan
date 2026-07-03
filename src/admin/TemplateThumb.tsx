@@ -80,16 +80,8 @@ function MiniSite({ t }: { t: SiteTemplate }) {
     return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontWeight: 700, fontSize: 11.5, letterSpacing: 1.2, color: primary, background: soft, padding: '5px 13px', borderRadius: 999 }}><span style={{ width: 6, height: 6, borderRadius: 999, background: accent }} />{label}</span>
   }
 
-  const Logo = ({ light }: { light?: boolean }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <div style={{ width: 40, height: 40, borderRadius: 11, background: light ? '#fff' : `linear-gradient(140deg,${primary},${deep})`, display: 'grid', placeItems: 'center' }}>
-        <HeartPulse size={22} color={light ? primary : '#fff'} />
-      </div>
-      <div style={{ lineHeight: 1.15 }}>
-        <div style={{ fontFamily: head, fontWeight: 700, fontSize: 19, color: light ? '#fff' : ink }}>{info.clinicName}</div>
-        <div style={{ fontSize: 10, letterSpacing: 1.5, fontWeight: 700, color: light ? 'rgba(255,255,255,.75)' : accent, textTransform: 'uppercase' }}>{info.tagline}</div>
-      </div>
-    </div>
+  const Logo = () => (
+    <img src={info.logoUrl} alt="" style={{ height: 60, width: 'auto', maxWidth: 260, objectFit: 'contain' }} />
   )
   const Nav = ({ light }: { light?: boolean }) => (
     <div style={{ display: 'flex', gap: 22 }}>{NAV.map((n) => <span key={n} style={{ fontSize: 14, fontWeight: 600, color: light ? 'rgba(255,255,255,.9)' : ink }}>{n}</span>)}</div>
@@ -111,7 +103,7 @@ function MiniSite({ t }: { t: SiteTemplate }) {
     )
     if (t.header === 'bar') return (
       <div style={{ background: primary, padding: '14px 40px', display: 'flex', alignItems: 'center' }}>
-        <Logo light /><div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}><Nav light /></div>
+        <Logo /><div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}><Nav light /></div>
         <span style={{ fontSize: 13.5, fontWeight: 700, color: primary, background: '#fff', padding: '11px 18px', borderRadius: br === '999px' ? 999 : 10 }}>Đặt lịch khám</span>
       </div>
     )

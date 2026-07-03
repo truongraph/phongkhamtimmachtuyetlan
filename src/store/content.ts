@@ -123,7 +123,7 @@ export const DEFAULT_CONTENT: SiteContent = {
     clinicName: 'Tim mạch Tuyết Lan',
     tagline: 'Phòng khám chuyên khoa',
     slogan: 'Tâm sáng · Tầm cao · Tim khỏe',
-    logoUrl: '/logo.jpg',
+    logoUrl: '/logo.png',
     phone: '0979 86 77 51',
     address: '16/63 Tuệ Tĩnh, Phường Phú Thọ',
     addressNote: '(P.13, Q.11 cũ), TP. Hồ Chí Minh',

@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 import { useContent } from '@/store/content'
 import { useTemplate } from './templates'
 import { Icon } from '@/lib/icons'
-import { Phone, User, Activity, HeartPulse, MapPin } from 'lucide-react'
+import { Phone, User, Activity, HeartPulse, MapPin, ChevronUp } from 'lucide-react'
+import { openBooking } from './sections/Hero'
 
-const NAV = [
+// spy = id khu vực dùng để tô sáng mục menu (Trang chủ link về #top nhưng sáng theo khu vực hero).
+const NAV: { id: string; label: string; spy?: string }[] = [
+  { id: 'top', label: 'Trang chủ', spy: 'dat-lich' },
   { id: 'gioi-thieu', label: 'Giới thiệu' },
   { id: 'dich-vu', label: 'Dịch vụ' },
   { id: 'chuyen-mon', label: 'Chuyên môn' },
@@ -26,15 +29,11 @@ function useScrollSpy(ids: string[]) {
   return active
 }
 
-function Logo({ light }: { light?: boolean }) {
+function Logo() {
   const info = useContent((s) => s.published.info)
   return (
-    <a href="#top" className="flex items-center gap-3">
-      <img src={info.logoUrl} alt="Logo" className="size-11 md:size-12 rounded-[10px] bg-white p-1 border object-contain" style={{ borderColor: 'var(--tl-line)' }} />
-      <span className="flex flex-col leading-tight">
-        <b className="site-head font-bold text-[1.05rem] md:text-[1.1rem] whitespace-nowrap" style={{ color: light ? '#fff' : 'var(--tl-ink)' }}>{info.clinicName}</b>
-        <span className="hidden sm:block text-[.66rem] tracking-[.12em] uppercase font-bold" style={{ color: light ? 'rgba(255,255,255,.85)' : 'var(--tl-accent)' }}>{info.tagline}</span>
-      </span>
+    <a href="#top" aria-label={info.clinicName} className="flex items-center">
+      <img src={info.logoUrl} alt={info.clinicName} className="h-14 md:h-16 w-auto max-w-[240px] object-contain" />
     </a>
   )
 }
@@ -42,14 +41,17 @@ function Logo({ light }: { light?: boolean }) {
 function NavLinks({ active, light, center }: { active: string; light?: boolean; center?: boolean }) {
   return (
     <nav className={`hidden lg:flex items-center gap-1 ${center ? 'justify-center' : ''}`}>
-      {NAV.map((n) => (
-        <a key={n.id} href={`#${n.id}`} className="relative px-3 py-2 rounded-lg text-[.94rem] font-semibold transition-colors"
-          style={{ color: light ? (active === n.id ? '#fff' : 'rgba(255,255,255,.82)') : (active === n.id ? 'var(--tl-primary)' : 'var(--tl-ink)') }}>
-          {n.label}
-          <span className="absolute left-3 right-3 -bottom-[1px] h-[2.5px] rounded origin-left transition-transform"
-            style={{ background: light ? '#fff' : 'var(--tl-accent)', transform: active === n.id ? 'scaleX(1)' : 'scaleX(0)' }} />
-        </a>
-      ))}
+      {NAV.map((n) => {
+        const on = active === (n.spy ?? n.id)
+        return (
+          <a key={n.id} href={`#${n.id}`} className="relative px-3 py-2 rounded-lg text-[.94rem] font-semibold transition-colors"
+            style={{ color: light ? (on ? '#fff' : 'rgba(255,255,255,.82)') : (on ? 'var(--tl-primary)' : 'var(--tl-ink)') }}>
+            {n.label}
+            <span className="absolute left-3 right-3 -bottom-[1px] h-[2.5px] rounded origin-left transition-transform"
+              style={{ background: light ? '#fff' : 'var(--tl-accent)', transform: on ? 'scaleX(1)' : 'scaleX(0)' }} />
+          </a>
+        )
+      })}
     </nav>
   )
 }
@@ -57,7 +59,7 @@ function NavLinks({ active, light, center }: { active: string; light?: boolean; 
 function Cta({ tel, bar }: { tel: string; bar?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <a href="#dat-lich" className="hidden md:inline-flex items-center px-5 py-3 text-[.95rem] font-semibold"
+      <a href="#dat-lich" onClick={(e) => { e.preventDefault(); openBooking() }} className="hidden md:inline-flex items-center px-5 py-3 text-[.95rem] font-semibold"
         style={bar ? { background: '#fff', color: 'var(--tl-primary)', borderRadius: 'var(--tl-btn)' } : { background: 'var(--tl-accent)', color: '#fff', borderRadius: 'var(--tl-btn)' }}>Đặt lịch khám</a>
       <a href={`tel:${tel}`} className="md:hidden grid place-items-center size-11 text-white" style={{ background: 'var(--tl-accent)', borderRadius: 'var(--tl-btn)' }} aria-label="Gọi">
         <Phone className="size-5" />
@@ -70,18 +72,25 @@ export function SiteHeader({ tel }: { tel: string }) {
   const info = useContent((s) => s.published.info)
   const tpl = useTemplate()
   const [scrolled, setScrolled] = useState(false)
-  const active = useScrollSpy(NAV.map((n) => n.id))
+  const active = useScrollSpy(NAV.map((n) => n.spy ?? n.id))
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 6)
+    on()
     window.addEventListener('scroll', on, { passive: true })
     return () => window.removeEventListener('scroll', on)
   }, [])
 
   const isBar = tpl.header === 'bar'
+  // "Tráng gương": khi đã cuộn thì nền bán trong suốt + làm mờ hậu cảnh (frosted glass).
+  const glass: React.CSSProperties = { WebkitBackdropFilter: 'blur(14px)', backdropFilter: 'blur(14px)' }
   const headerStyle: React.CSSProperties = isBar
-    ? { background: 'var(--tl-primary)' }
-    : { background: '#fff', borderBottom: '1px solid var(--tl-line)' }
-  const shadow = scrolled ? 'shadow-[0_4px_20px_rgba(18,40,63,.10)]' : ''
+    ? (scrolled
+        ? { background: 'color-mix(in srgb, var(--tl-primary) 78%, transparent)', ...glass }
+        : { background: 'var(--tl-primary)' })
+    : (scrolled
+        ? { background: 'rgba(255,255,255,.7)', borderBottom: '1px solid var(--tl-line)', ...glass }
+        : { background: '#fff', borderBottom: '1px solid var(--tl-line)' })
+  const headerCls = `sticky top-0 z-40 transition-shadow ${scrolled ? 'shadow-[0_4px_20px_rgba(18,40,63,.10)]' : ''}`
 
   return (
     <>
@@ -104,7 +113,7 @@ export function SiteHeader({ tel }: { tel: string }) {
       )}
 
       {tpl.header === 'centered' ? (
-        <header className={`sticky top-0 z-40 transition-shadow ${shadow}`} style={headerStyle}>
+        <header className={headerCls} style={headerStyle}>
           <div className="container">
             <div className="flex h-[64px] md:h-[68px] items-center justify-between gap-4">
               <Logo />
@@ -116,9 +125,9 @@ export function SiteHeader({ tel }: { tel: string }) {
           </div>
         </header>
       ) : (
-        <header className={`sticky top-0 z-40 transition-shadow ${shadow}`} style={headerStyle}>
+        <header className={headerCls} style={headerStyle}>
           <div className="container flex h-[64px] md:h-[74px] items-center justify-between gap-4">
-            <Logo light={isBar} />
+            <Logo />
             <NavLinks active={active} light={isBar} />
             <Cta tel={tel} bar={isBar} />
           </div>
@@ -190,5 +199,46 @@ export function SiteFooter() {
         </div>
       </div>
     </footer>
+  )
+}
+
+/** Nút nổi: Gọi hotline (trái–dưới, icon lắc + sóng vang) & Lên đầu trang (phải–dưới, trượt ra khi cuộn). */
+export function FloatingWidgets() {
+  const info = useContent((s) => s.published.info)
+  const tel = info.phone.replace(/\s/g, '')
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    const on = () => setShow(window.scrollY > 320)
+    on()
+    window.addEventListener('scroll', on, { passive: true })
+    return () => window.removeEventListener('scroll', on)
+  }, [])
+
+  return (
+    <>
+      {/* Gọi hotline — góc trái dưới (máy tính) */}
+      <a
+        href={`tel:${tel}`}
+        aria-label={`Gọi hotline ${info.phone}`}
+        className="hidden lg:grid fixed bottom-6 left-6 z-40 place-items-center size-14 rounded-full text-white shadow-[0_10px_28px_rgba(0,0,0,.24)]"
+        style={{ background: 'var(--tl-accent)' }}
+      >
+        {/* sóng vang */}
+        <span className="absolute inset-0 rounded-full animate-ping" style={{ background: 'var(--tl-accent)', opacity: 0.55 }} />
+        <span className="absolute inset-0 rounded-full animate-ping" style={{ background: 'var(--tl-accent)', opacity: 0.35, animationDelay: '.7s' }} />
+        <Phone className="relative size-6 tl-wiggle" />
+      </a>
+
+      {/* Lên đầu trang — góc phải dưới, trượt từ phải ra khi cuộn xuống */}
+      <button
+        type="button"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        aria-label="Lên đầu trang"
+        className={`fixed z-40 bottom-24 lg:bottom-6 right-5 lg:right-6 grid place-items-center size-12 rounded-full text-white shadow-[0_10px_28px_rgba(0,0,0,.22)] transition-all duration-300 hover:-translate-y-0.5 ${show ? 'translate-x-0 opacity-100' : 'translate-x-[160%] opacity-0 pointer-events-none'}`}
+        style={{ background: 'var(--tl-primary)' }}
+      >
+        <ChevronUp className="size-6" />
+      </button>
+    </>
   )
 }
