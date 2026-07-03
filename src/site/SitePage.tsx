@@ -3,14 +3,15 @@ import { ThemeStyle } from './ThemeStyle'
 import { useTemplate } from './templates'
 import { SiteHeader, SiteFooter, FloatingWidgets } from './SiteChrome'
 import { Hero, BookingBand, BookingModal, openBooking } from './sections/Hero'
-import { Stats, Why, Services, About, Specialties, Journey, Contact } from './sections/Sections'
+import { Stats, Why, Services, About, Specialties, Journey, Contact, Faq, Testimonials, Pricing, Gallery } from './sections/Sections'
 import { SeoHead } from './Ecg'
 import { EditBridge, Editable } from './edit'
 import { Phone } from 'lucide-react'
 import type { SectionType } from '@/store/content'
 
 const MAP: Record<SectionType, () => JSX.Element> = {
-  stats: Stats, why: Why, services: Services, about: About, specialties: Specialties, journey: Journey, contact: Contact,
+  stats: Stats, why: Why, services: Services, about: About, specialties: Specialties, journey: Journey,
+  faq: Faq, testimonials: Testimonials, pricing: Pricing, gallery: Gallery, contact: Contact,
 }
 
 function FinalCta() {

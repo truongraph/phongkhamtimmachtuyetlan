@@ -5,16 +5,32 @@ import { Icon } from '@/lib/icons'
 import { Phone, User, Activity, HeartPulse, MapPin, ChevronUp } from 'lucide-react'
 import { openBooking } from './sections/Hero'
 import { Editable, EditableImage } from './edit'
+import type { SectionType } from '@/store/content'
 
-// spy = id khu vực dùng để tô sáng mục menu (Trang chủ link về #top nhưng sáng theo khu vực hero).
-const NAV: { id: string; label: string; spy?: string }[] = [
-  { id: 'top', label: 'Trang chủ', spy: 'dat-lich' },
-  { id: 'gioi-thieu', label: 'Giới thiệu' },
-  { id: 'dich-vu', label: 'Dịch vụ' },
-  { id: 'chuyen-mon', label: 'Chuyên môn' },
-  { id: 'dao-tao', label: 'Đào tạo' },
-  { id: 'lien-he', label: 'Liên hệ' },
-]
+// Ánh xạ phần trên trang → mục menu (id khu vực + nhãn). Phần không có ở đây thì không lên menu.
+const SECTION_NAV: Partial<Record<SectionType, { id: string; label: string }>> = {
+  about: { id: 'gioi-thieu', label: 'Giới thiệu' },
+  services: { id: 'dich-vu', label: 'Dịch vụ' },
+  specialties: { id: 'chuyen-mon', label: 'Chuyên môn' },
+  journey: { id: 'dao-tao', label: 'Đào tạo' },
+  testimonials: { id: 'cam-nhan', label: 'Cảm nhận' },
+  pricing: { id: 'bang-gia', label: 'Bảng giá' },
+  faq: { id: 'faq', label: 'Hỏi đáp' },
+  gallery: { id: 'thu-vien', label: 'Thư viện' },
+  contact: { id: 'lien-he', label: 'Liên hệ' },
+}
+
+interface NavItem { id: string; label: string; spy?: string }
+// Menu ĐỘNG: “Trang chủ” + các phần ĐANG HIỂN THỊ, theo đúng thứ tự trong Bố cục.
+function useNav(): NavItem[] {
+  const sections = useContent((s) => s.published.sections)
+  const items: NavItem[] = [{ id: 'top', label: 'Trang chủ', spy: 'dat-lich' }]
+  for (const s of sections) {
+    const m = s.visible ? SECTION_NAV[s.type] : undefined
+    if (m) items.push(m)
+  }
+  return items
+}
 
 function useScrollSpy(ids: string[]) {
   const [active, setActive] = useState('')
@@ -39,10 +55,10 @@ function Logo() {
   )
 }
 
-function NavLinks({ active, light, center }: { active: string; light?: boolean; center?: boolean }) {
+function NavLinks({ nav, active, light, center }: { nav: NavItem[]; active: string; light?: boolean; center?: boolean }) {
   return (
     <nav className={`hidden lg:flex items-center gap-1 ${center ? 'justify-center' : ''}`}>
-      {NAV.map((n) => {
+      {nav.map((n) => {
         const on = active === (n.spy ?? n.id)
         return (
           <a key={n.id} href={`#${n.id}`} className="relative px-3 py-2 rounded-lg text-[.94rem] font-semibold transition-colors"
@@ -73,7 +89,9 @@ export function SiteHeader({ tel }: { tel: string }) {
   const info = useContent((s) => s.published.info)
   const tpl = useTemplate()
   const [scrolled, setScrolled] = useState(false)
-  const active = useScrollSpy(NAV.map((n) => n.spy ?? n.id))
+  const nav = useNav()
+  const navIds = new Set(nav.map((n) => n.id))
+  const active = useScrollSpy(nav.map((n) => n.spy ?? n.id))
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 6)
     on()
@@ -121,7 +139,7 @@ export function SiteHeader({ tel }: { tel: string }) {
               <Cta tel={tel} />
             </div>
             <div className="hidden lg:block border-t pb-1.5" style={{ borderColor: 'var(--tl-line)' }}>
-              <NavLinks active={active} center />
+              <NavLinks nav={nav} active={active} center />
             </div>
           </div>
         </header>
@@ -129,7 +147,7 @@ export function SiteHeader({ tel }: { tel: string }) {
         <header className={headerCls} style={headerStyle}>
           <div className="container flex h-[64px] md:h-[74px] items-center justify-between gap-4">
             <Logo />
-            <NavLinks active={active} light={isBar} />
+            <NavLinks nav={nav} active={active} light={isBar} />
             <Cta tel={tel} bar={isBar} />
           </div>
         </header>
@@ -144,7 +162,7 @@ export function SiteHeader({ tel }: { tel: string }) {
             { id: '__call', label: 'Gọi ngay', I: Phone },
             { id: 'chuyen-mon', label: 'Chuyên môn', I: HeartPulse },
             { id: 'lien-he', label: 'Liên hệ', I: MapPin },
-          ].map((t) =>
+          ].filter((t) => t.id === '__call' || navIds.has(t.id)).map((t) =>
             t.id === '__call' ? (
               <a key={t.id} href={`tel:${tel}`} className="flex-1 flex flex-col items-center gap-1 pt-[9px] pb-2 text-[.66rem] font-bold" style={{ color: 'var(--tl-accent)' }}>
                 <span className="grid place-items-center size-11 -mt-5 rounded-full text-white border-[3px] border-white shadow-lg" style={{ background: 'var(--tl-accent)' }}><Phone className="size-[22px]" /></span>
@@ -167,6 +185,7 @@ export function SiteHeader({ tel }: { tel: string }) {
 
 export function SiteFooter() {
   const { info, footerAbout } = useContent((s) => s.published)
+  const nav = useNav()
   return (
     <footer className="text-white/65 pt-[52px] pb-20 lg:pb-10 text-[.92rem]" style={{ background: 'linear-gradient(180deg,color-mix(in srgb,var(--tl-deep) 80%,#071427),color-mix(in srgb,var(--tl-deep) 50%,#071427))' }}>
       <div className="container">
@@ -182,7 +201,7 @@ export function SiteFooter() {
           <div>
             <h4 className="text-white text-[.8rem] tracking-[.1em] uppercase mb-4 font-bold font-sans">Liên kết</h4>
             <ul className="grid gap-2.5">
-              {NAV.map((n) => <li key={n.id}><a href={`#${n.id}`} className="hover:text-white">{n.label}</a></li>)}
+              {nav.map((n) => <li key={n.id}><a href={`#${n.id}`} className="hover:text-white">{n.label}</a></li>)}
             </ul>
           </div>
           <div>

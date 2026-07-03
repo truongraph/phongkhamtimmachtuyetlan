@@ -65,7 +65,7 @@ export function Account() {
           </form>
         </CardContent>
       </Card>
-      <div className={`rounded-lg border p-4 text-sm ${isBackend ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-amber-300 bg-amber-50 text-amber-800'}`}>
+      <div className={`rounded-lg border p-4 text-sm ${isBackend ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200' : 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200'}`}>
         {isBackend
           ? <><b>Đang chạy online (Supabase):</b> đăng nhập bằng Supabase Auth, đổi mật khẩu được lưu an toàn phía máy chủ. Trường "mật khẩu hiện tại" không bắt buộc ở chế độ này.</>
           : <><b>Lưu ý bảo mật:</b> đây là xác thực phía trình duyệt (demo). Điền Supabase vào <b>.env</b> để bật đăng nhập máy chủ an toàn.</>}

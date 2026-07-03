@@ -4,7 +4,8 @@ import { setByPath } from '@/lib/path'
 
 /* ============ TYPES ============ */
 export type SectionType =
-  | 'stats' | 'why' | 'services' | 'about' | 'specialties' | 'journey' | 'contact'
+  | 'stats' | 'why' | 'services' | 'about' | 'specialties' | 'journey'
+  | 'faq' | 'testimonials' | 'pricing' | 'gallery' | 'contact'
 
 export interface SectionMeta {
   type: SectionType
@@ -60,6 +61,10 @@ export interface TimelineItem extends IdItem { year: string; title: string; plac
 export interface Research extends IdItem { year: string; title: string; tag: string }
 export interface TimelineTab extends IdItem { key: string; label: string; twoCol?: boolean; items: TimelineItem[] }
 export interface Credential extends IdItem { icon: string; title: string; sub: string }
+export interface FaqItem extends IdItem { q: string; a: string }
+export interface Testimonial extends IdItem { quote: string; name: string; role: string; photoUrl: string }
+export interface PriceItem extends IdItem { name: string; price: string; note: string }
+export interface GalleryImage extends IdItem { url: string; caption: string }
 
 export interface About {
   eyebrow: string
@@ -101,6 +106,24 @@ export interface SiteContent {
   journeyTitleHighlight: string
   timeline: TimelineTab[]
   research: Research[]
+  /* Khối tùy chọn (bật/tắt trong Bố cục) */
+  faqEyebrow: string
+  faqTitle: string
+  faqTitleHighlight: string
+  faqs: FaqItem[]
+  testimonialsEyebrow: string
+  testimonialsTitle: string
+  testimonialsTitleHighlight: string
+  testimonials: Testimonial[]
+  pricingEyebrow: string
+  pricingTitle: string
+  pricingTitleHighlight: string
+  pricingLead: string
+  pricing: PriceItem[]
+  galleryEyebrow: string
+  galleryTitle: string
+  galleryTitleHighlight: string
+  gallery: GalleryImage[]
   contactEyebrow: string
   contactTitle: string
   contactTitleHighlight: string
@@ -251,6 +274,40 @@ export const DEFAULT_CONTENT: SiteContent = {
     { id: uid(), year: '2014', title: 'Đặc điểm siêu âm 2D và Doppler trên bệnh nhân chuyển vị đại động mạch được phẫu thuật', tag: 'Siêu âm tim' },
     { id: uid(), year: '2020', title: 'Các yếu tố nguy cơ ảnh hưởng kết quả ngắn hạn phẫu thuật hở van 2 lá ở bệnh nhân cao tuổi', tag: 'Van tim' },
   ],
+  faqEyebrow: 'Giải đáp thắc mắc',
+  faqTitle: 'Câu hỏi',
+  faqTitleHighlight: 'thường gặp',
+  faqs: [
+    { id: uid(), q: 'Phòng khám làm việc vào những khung giờ nào?', a: 'Thứ 2 – Thứ 7: 17:00–20:00; Chủ nhật: 08:00–11:00. Vui lòng gọi trước để được sắp xếp lịch hẹn thuận tiện.' },
+    { id: uid(), q: 'Tôi cần chuẩn bị gì trước khi đi khám tim?', a: 'Mang theo kết quả xét nghiệm/toa thuốc cũ (nếu có), danh sách thuốc đang dùng và mặc áo thoải mái để thuận tiện đo điện tâm đồ, siêu âm tim.' },
+    { id: uid(), q: 'Phòng khám có siêu âm tim và điện tâm đồ không?', a: 'Có. Chúng tôi thực hiện siêu âm tim, siêu âm mạch máu, điện tâm đồ và Holter 24–48h ngay tại phòng khám.' },
+  ],
+  testimonialsEyebrow: 'Cảm nhận bệnh nhân',
+  testimonialsTitle: 'Bệnh nhân nói gì về',
+  testimonialsTitleHighlight: 'chúng tôi',
+  testimonials: [
+    { id: uid(), quote: 'Bác sĩ tận tâm, giải thích rõ ràng và theo dõi điều trị chu đáo. Tôi rất yên tâm khi khám tại đây.', name: 'Cô Nguyễn Thị H.', role: 'Bệnh nhân tăng huyết áp', photoUrl: '' },
+    { id: uid(), quote: 'Phòng khám sạch sẽ, đặt lịch nhanh, kết quả siêu âm tim được giải thích cặn kẽ. Cảm ơn bác sĩ nhiều.', name: 'Chú Trần Văn M.', role: 'Bệnh nhân mạch vành', photoUrl: '' },
+    { id: uid(), quote: 'Chi phí hợp lý, bác sĩ giàu kinh nghiệm. Gia đình tôi đều tin tưởng khám tim ở đây.', name: 'Anh Lê Quốc T.', role: 'Người nhà bệnh nhân', photoUrl: '' },
+  ],
+  pricingEyebrow: 'Chi phí tham khảo',
+  pricingTitle: 'Bảng giá',
+  pricingTitleHighlight: 'dịch vụ',
+  pricingLead: 'Chi phí tham khảo, có thể thay đổi tùy tình trạng. Vui lòng gọi hotline để được tư vấn cụ thể.',
+  pricing: [
+    { id: uid(), name: 'Khám & tư vấn tim mạch', price: '200.000đ', note: 'Bác sĩ chuyên khoa trực tiếp' },
+    { id: uid(), name: 'Siêu âm tim', price: '350.000đ', note: 'Người lớn & trẻ em' },
+    { id: uid(), name: 'Điện tâm đồ (ECG)', price: '100.000đ', note: 'Có đọc kết quả ngay' },
+    { id: uid(), name: 'Siêu âm mạch máu', price: '400.000đ', note: 'Động – tĩnh mạch' },
+  ],
+  galleryEyebrow: 'Hình ảnh phòng khám',
+  galleryTitle: 'Không gian &',
+  galleryTitleHighlight: 'trang thiết bị',
+  gallery: [
+    { id: uid(), url: '/doctor.webp', caption: 'Phòng khám tim mạch' },
+    { id: uid(), url: '/doctor.webp', caption: 'Khu siêu âm tim' },
+    { id: uid(), url: '/doctor.webp', caption: 'Quầy tiếp đón' },
+  ],
   contactEyebrow: 'Liên hệ & đặt lịch',
   contactTitle: 'Đến khám tại',
   contactTitleHighlight: 'Tuyết Lan',
@@ -269,6 +326,10 @@ export const DEFAULT_CONTENT: SiteContent = {
     { type: 'about', label: 'Giới thiệu bác sĩ', visible: true },
     { type: 'specialties', label: 'Lĩnh vực chuyên môn', visible: true },
     { type: 'journey', label: 'Đào tạo & công tác', visible: true },
+    { type: 'testimonials', label: 'Cảm nhận bệnh nhân', visible: false },
+    { type: 'faq', label: 'Câu hỏi thường gặp', visible: false },
+    { type: 'pricing', label: 'Bảng giá dịch vụ', visible: false },
+    { type: 'gallery', label: 'Thư viện ảnh', visible: false },
     { type: 'contact', label: 'Liên hệ & bản đồ', visible: true },
   ],
 }

@@ -163,7 +163,7 @@ export function ImageUpload({ label, value, onChange }: { label: string; value: 
     <div className="space-y-1.5">
       <Label>{label}</Label>
       <div className="flex items-center gap-4">
-        <img src={value} alt="" className="size-16 rounded-lg border object-cover bg-white" />
+        <img src={value} alt="" className="size-16 rounded-lg border object-cover bg-muted" />
         <div className="space-y-2">
           <input ref={ref} type="file" accept="image/*" hidden onChange={pick} />
           <Button type="button" variant="outline" size="sm" onClick={() => ref.current?.click()}><Upload className="size-4" /> Tải ảnh lên</Button>

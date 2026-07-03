@@ -11,10 +11,12 @@ import { FONTS, FONT_NAMES, fontStack, fontCategory, googleFontsHref } from '@/l
 import {
   Plus, Type, ListChecks, CalendarCheck, Stethoscope, ShieldCheck, HeartPulse, UserSquare,
   AlignLeft, Tags, GraduationCap, Quote, FlaskConical, Building2, MapPin, Globe, Clock, Image as ImageIcon,
-  Palette, Megaphone, PanelBottom, type LucideIcon,
+  Palette, Megaphone, PanelBottom, HelpCircle, MessageSquareQuote, CircleDollarSign, Images, type LucideIcon,
 } from 'lucide-react'
 
-export type PanelKey = 'hero' | 'about' | 'services' | 'why' | 'specialties' | 'journey' | 'contact' | 'settings'
+export type PanelKey =
+  | 'hero' | 'about' | 'services' | 'why' | 'specialties' | 'journey'
+  | 'faq' | 'testimonials' | 'pricing' | 'gallery' | 'contact' | 'settings'
 export interface SectionMeta { key: string; title: string; icon: LucideIcon; Body: React.FC<{ sk: string }> }
 
 /* ============ KHỐI GỌN DÙNG CHUNG ============ */
@@ -414,6 +416,122 @@ function SetFooterBody() {
   return <Area label="Mô tả ở chân trang" value={c.footerAbout} onChange={(v) => set((d) => { d.footerAbout = v })} />
 }
 
+/* ============ FAQ ============ */
+function FaqHeadBody() {
+  const c = useContent((s) => s.content); const set = useContent((s) => s.set)
+  return (
+    <>
+      <Field label="Nhãn nhỏ" value={c.faqEyebrow} onChange={(v) => set((d) => { d.faqEyebrow = v })} />
+      <Field label="Tiêu đề" value={c.faqTitle} onChange={(v) => set((d) => { d.faqTitle = v })} />
+      <Field label="Từ nhấn (đỏ)" value={c.faqTitleHighlight} onChange={(v) => set((d) => { d.faqTitleHighlight = v })} />
+    </>
+  )
+}
+function FaqItemsBody() {
+  const list = useContent((s) => s.content.faqs); const set = useContent((s) => s.set); const newId = useContent((s) => s.newId)
+  return (
+    <>
+      <SortableList items={list} onChange={(l) => set((d) => { d.faqs = l })} className="space-y-2.5">
+        {(f, i, handle) => (
+          <ItemCard handle={handle} index={i} label="Câu hỏi" onDelete={() => set((d) => { d.faqs.splice(i, 1) })}>
+            <Field label="Câu hỏi" value={f.q} onChange={(v) => set((d) => { d.faqs[i].q = v })} />
+            <Area label="Trả lời" rows={3} value={f.a} onChange={(v) => set((d) => { d.faqs[i].a = v })} />
+          </ItemCard>
+        )}
+      </SortableList>
+      <AddBtn onClick={() => set((d) => { d.faqs.push({ id: newId(), q: 'Câu hỏi mới?', a: 'Nội dung trả lời...' }) })}>Thêm câu hỏi</AddBtn>
+    </>
+  )
+}
+
+/* ============ CẢM NHẬN BỆNH NHÂN ============ */
+function TestimonialsHeadBody() {
+  const c = useContent((s) => s.content); const set = useContent((s) => s.set)
+  return (
+    <>
+      <Field label="Nhãn nhỏ" value={c.testimonialsEyebrow} onChange={(v) => set((d) => { d.testimonialsEyebrow = v })} />
+      <Field label="Tiêu đề" value={c.testimonialsTitle} onChange={(v) => set((d) => { d.testimonialsTitle = v })} />
+      <Field label="Từ nhấn (đỏ)" value={c.testimonialsTitleHighlight} onChange={(v) => set((d) => { d.testimonialsTitleHighlight = v })} />
+    </>
+  )
+}
+function TestimonialsItemsBody() {
+  const list = useContent((s) => s.content.testimonials); const set = useContent((s) => s.set); const newId = useContent((s) => s.newId)
+  return (
+    <>
+      <SortableList items={list} onChange={(l) => set((d) => { d.testimonials = l })} className="space-y-2.5">
+        {(t, i, handle) => (
+          <ItemCard handle={handle} index={i} label="Cảm nhận" onDelete={() => set((d) => { d.testimonials.splice(i, 1) })}>
+            <Area label="Nội dung cảm nhận" rows={3} value={t.quote} onChange={(v) => set((d) => { d.testimonials[i].quote = v })} />
+            <Field label="Tên người" value={t.name} onChange={(v) => set((d) => { d.testimonials[i].name = v })} />
+            <Field label="Vai trò / mô tả" value={t.role} onChange={(v) => set((d) => { d.testimonials[i].role = v })} />
+            <ImageUpload label="Ảnh (tùy chọn)" value={t.photoUrl} onChange={(v) => set((d) => { d.testimonials[i].photoUrl = v })} />
+          </ItemCard>
+        )}
+      </SortableList>
+      <AddBtn onClick={() => set((d) => { d.testimonials.push({ id: newId(), quote: 'Nội dung cảm nhận...', name: 'Tên khách hàng', role: 'Bệnh nhân', photoUrl: '' }) })}>Thêm cảm nhận</AddBtn>
+    </>
+  )
+}
+
+/* ============ BẢNG GIÁ ============ */
+function PricingHeadBody() {
+  const c = useContent((s) => s.content); const set = useContent((s) => s.set)
+  return (
+    <>
+      <Field label="Nhãn nhỏ" value={c.pricingEyebrow} onChange={(v) => set((d) => { d.pricingEyebrow = v })} />
+      <Field label="Tiêu đề" value={c.pricingTitle} onChange={(v) => set((d) => { d.pricingTitle = v })} />
+      <Field label="Từ nhấn (đỏ)" value={c.pricingTitleHighlight} onChange={(v) => set((d) => { d.pricingTitleHighlight = v })} />
+      <Area label="Mô tả ngắn" value={c.pricingLead} onChange={(v) => set((d) => { d.pricingLead = v })} />
+    </>
+  )
+}
+function PricingItemsBody() {
+  const list = useContent((s) => s.content.pricing); const set = useContent((s) => s.set); const newId = useContent((s) => s.newId)
+  return (
+    <>
+      <SortableList items={list} onChange={(l) => set((d) => { d.pricing = l })} className="space-y-2.5">
+        {(p, i, handle) => (
+          <ItemCard handle={handle} index={i} label="Mục giá" onDelete={() => set((d) => { d.pricing.splice(i, 1) })}>
+            <Field label="Tên dịch vụ" value={p.name} onChange={(v) => set((d) => { d.pricing[i].name = v })} />
+            <Field label="Giá" value={p.price} onChange={(v) => set((d) => { d.pricing[i].price = v })} />
+            <Field label="Ghi chú" value={p.note} onChange={(v) => set((d) => { d.pricing[i].note = v })} />
+          </ItemCard>
+        )}
+      </SortableList>
+      <AddBtn onClick={() => set((d) => { d.pricing.push({ id: newId(), name: 'Dịch vụ mới', price: '0đ', note: '' }) })}>Thêm mục giá</AddBtn>
+    </>
+  )
+}
+
+/* ============ THƯ VIỆN ẢNH ============ */
+function GalleryHeadBody() {
+  const c = useContent((s) => s.content); const set = useContent((s) => s.set)
+  return (
+    <>
+      <Field label="Nhãn nhỏ" value={c.galleryEyebrow} onChange={(v) => set((d) => { d.galleryEyebrow = v })} />
+      <Field label="Tiêu đề" value={c.galleryTitle} onChange={(v) => set((d) => { d.galleryTitle = v })} />
+      <Field label="Từ nhấn (đỏ)" value={c.galleryTitleHighlight} onChange={(v) => set((d) => { d.galleryTitleHighlight = v })} />
+    </>
+  )
+}
+function GalleryItemsBody() {
+  const list = useContent((s) => s.content.gallery); const set = useContent((s) => s.set); const newId = useContent((s) => s.newId)
+  return (
+    <>
+      <SortableList items={list} onChange={(l) => set((d) => { d.gallery = l })} className="space-y-2.5">
+        {(g, i, handle) => (
+          <ItemCard handle={handle} index={i} label="Ảnh" onDelete={() => set((d) => { d.gallery.splice(i, 1) })}>
+            <ImageUpload label="Ảnh" value={g.url} onChange={(v) => set((d) => { d.gallery[i].url = v })} />
+            <Field label="Chú thích" value={g.caption} onChange={(v) => set((d) => { d.gallery[i].caption = v })} />
+          </ItemCard>
+        )}
+      </SortableList>
+      <AddBtn onClick={() => set((d) => { d.gallery.push({ id: newId(), url: '/doctor.webp', caption: 'Ảnh mới' }) })}>Thêm ảnh</AddBtn>
+    </>
+  )
+}
+
 /* ============ REGISTRY: mỗi panel → danh sách phần con ============ */
 export const PANEL_SECTIONS: Partial<Record<PanelKey, (c: SiteContent) => SectionMeta[]>> = {
   hero: (c) => [
@@ -444,6 +562,22 @@ export const PANEL_SECTIONS: Partial<Record<PanelKey, (c: SiteContent) => Sectio
     { key: 'head', title: 'Tiêu đề khu vực', icon: Type, Body: JourneyHeadBody },
     ...c.timeline.map((t) => ({ key: `tab:${t.key}`, title: `${t.label} (${t.items.length})`, icon: GraduationCap, Body: JourneyTabBody as React.FC<{ sk: string }> })),
     { key: 'research', title: `Nghiên cứu (${c.research.length})`, icon: FlaskConical, Body: JourneyResearchBody },
+  ],
+  faq: (c) => [
+    { key: 'head', title: 'Tiêu đề khu vực', icon: Type, Body: FaqHeadBody },
+    { key: 'items', title: `Câu hỏi (${c.faqs.length})`, icon: HelpCircle, Body: FaqItemsBody },
+  ],
+  testimonials: (c) => [
+    { key: 'head', title: 'Tiêu đề khu vực', icon: Type, Body: TestimonialsHeadBody },
+    { key: 'items', title: `Cảm nhận (${c.testimonials.length})`, icon: MessageSquareQuote, Body: TestimonialsItemsBody },
+  ],
+  pricing: (c) => [
+    { key: 'head', title: 'Tiêu đề khu vực', icon: Type, Body: PricingHeadBody },
+    { key: 'items', title: `Mục giá (${c.pricing.length})`, icon: CircleDollarSign, Body: PricingItemsBody },
+  ],
+  gallery: (c) => [
+    { key: 'head', title: 'Tiêu đề khu vực', icon: Type, Body: GalleryHeadBody },
+    { key: 'items', title: `Ảnh (${c.gallery.length})`, icon: Images, Body: GalleryItemsBody },
   ],
   settings: () => [
     { key: 'info', title: 'Thông tin phòng khám', icon: Building2, Body: SetInfoBody },

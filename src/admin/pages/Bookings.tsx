@@ -141,7 +141,7 @@ export function Bookings() {
       <PageHead title="Đặt lịch khám" desc="Tiếp nhận, lọc, xuất báo cáo yêu cầu đặt lịch từ website." />
 
       {needSetup && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800 flex gap-3">
+        <div className="rounded-xl border border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 p-4 text-sm flex gap-3">
           <BellRing className="size-5 shrink-0 mt-0.5" />
           <div><b>Tài khoản này chưa gắn với phòng khám nào.</b> Thử <b>đăng xuất rồi đăng nhập lại</b>. Xem <a href="/huong-dan.html" target="_blank" rel="noreferrer" className="underline font-semibold">Hướng dẫn</a>.</div>
         </div>

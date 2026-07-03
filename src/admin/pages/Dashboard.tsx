@@ -16,10 +16,10 @@ export function Dashboard() {
   const tpl = getTemplate(c.template)
 
   const stats = [
-    { label: 'Đặt lịch mới', value: newCount, icon: CalendarClock, to: '/admin/bookings', tone: 'text-rose-600 bg-rose-50' },
-    { label: 'Dịch vụ', value: c.services.length, icon: Stethoscope, to: '/admin/services', tone: 'text-sky-600 bg-sky-50' },
-    { label: 'Chuyên môn', value: c.specialties.length, icon: HeartPulse, to: '/admin/specialties', tone: 'text-violet-600 bg-violet-50' },
-    { label: 'Phần đang hiện', value: c.sections.filter((s) => s.visible).length + 1, icon: Blocks, to: '/admin/layout', tone: 'text-emerald-600 bg-emerald-50' },
+    { label: 'Đặt lịch mới', value: newCount, icon: CalendarClock, to: '/admin/bookings', tone: 'text-rose-600 bg-rose-50 dark:text-rose-300 dark:bg-rose-500/15' },
+    { label: 'Dịch vụ', value: c.services.length, icon: Stethoscope, to: '/admin/services', tone: 'text-sky-600 bg-sky-50 dark:text-sky-300 dark:bg-sky-500/15' },
+    { label: 'Chuyên môn', value: c.specialties.length, icon: HeartPulse, to: '/admin/specialties', tone: 'text-violet-600 bg-violet-50 dark:text-violet-300 dark:bg-violet-500/15' },
+    { label: 'Phần đang hiện', value: c.sections.filter((s) => s.visible).length + 1, icon: Blocks, to: '/admin/layout', tone: 'text-emerald-600 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-500/15' },
   ]
   const quick = [
     { to: '/admin/layout', icon: Blocks, label: 'Bố cục & Xem trước', desc: 'Kéo–thả, ẩn/hiện, xem trực tiếp' },

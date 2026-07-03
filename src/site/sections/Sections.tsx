@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useContent } from '@/store/content'
 import { Icon } from '@/lib/icons'
-import { Clock, Phone, MapPin } from 'lucide-react'
+import { Clock, Phone, MapPin, ChevronDown } from 'lucide-react'
 import { useTemplate, useSkin } from '../templates'
 import { Editable, EditableImage } from '../edit'
+import { isEditMode } from '@/lib/editMode'
 
 /* Bảng màu icon xoay vòng — vẫn export để nơi khác (hero, thumbnail) dùng khi cần. */
 export const CHIP: readonly [string, string][] = [
@@ -442,5 +443,116 @@ function ContactLine({ i, icon, small, children }: { i: number; icon: React.Reac
       <span className={`grid place-items-center size-[46px] ${sk.iconShape} shrink-0`} style={sk.icon(i)}>{icon}</span>
       <span className="min-w-0"><small className="text-[.72rem] tracking-wide uppercase font-bold" style={{ color: 'var(--tl-slate)' }}>{small}</small><b className="block site-head font-semibold text-[1.08rem] mt-0.5">{children}</b></span>
     </div>
+  )
+}
+
+/* ============ FAQ (Câu hỏi thường gặp) ============ */
+export function Faq() {
+  const { faqs, faqEyebrow, faqTitle, faqTitleHighlight } = useContent((s) => s.published)
+  const sk = useSkin()
+  const edit = isEditMode()
+  const [open, setOpen] = useState<string | null>(faqs[0]?.id ?? null)
+  return (
+    <section id="faq" className="py-14 lg:py-24" style={{ background: sk.bgAlt }}>
+      <div className="container max-w-3xl">
+        <div className="text-center mb-11 flex flex-col items-center"><Eyebrow center path="faqEyebrow">{faqEyebrow}</Eyebrow><Title text={faqTitle} hi={faqTitleHighlight} path="faqTitle" hiPath="faqTitleHighlight" /></div>
+        <div className="space-y-3">
+          {faqs.map((f) => {
+            const isOpen = edit || open === f.id
+            return (
+              <div key={f.id} className="rounded-2xl border bg-white overflow-hidden" style={{ borderColor: 'var(--tl-line)' }}>
+                <button type="button" onClick={() => { if (!edit) setOpen(isOpen ? null : f.id) }} className="w-full flex items-center gap-3 text-left p-5">
+                  <Editable as="span" path={`faqs.${f.id}.q`} className="flex-1 site-head font-semibold text-[1.05rem]" style={{ color: 'var(--tl-ink)' }}>{f.q}</Editable>
+                  {!edit && <ChevronDown className={`size-5 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: 'var(--tl-primary)' }} />}
+                </button>
+                {isOpen && <Editable as="p" path={`faqs.${f.id}.a`} multiline className="px-5 pb-5 -mt-1 text-[.95rem] leading-relaxed" style={{ color: 'var(--tl-slate)' }}>{f.a}</Editable>}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ============ TESTIMONIALS (Cảm nhận bệnh nhân) ============ */
+export function Testimonials() {
+  const { testimonials, testimonialsEyebrow, testimonialsTitle, testimonialsTitleHighlight } = useContent((s) => s.published)
+  const sk = useSkin()
+  return (
+    <section id="cam-nhan" className="py-14 lg:py-24">
+      <div className="container">
+        <div className="max-w-[640px] mx-auto text-center mb-11 flex flex-col items-center"><Eyebrow center path="testimonialsEyebrow">{testimonialsEyebrow}</Eyebrow><Title text={testimonialsTitle} hi={testimonialsTitleHighlight} path="testimonialsTitle" hiPath="testimonialsTitleHighlight" /></div>
+        <div className="grid gap-5 md:grid-cols-3">
+          {testimonials.map((t, i) => (
+            <div key={t.id} className={`${sk.cardCls} p-6 flex flex-col`} style={sk.cardStyle}>
+              <span className="site-head text-[2.6rem] leading-[0.6] mb-2" style={{ color: 'var(--tl-primary)', opacity: 0.25 }}>”</span>
+              <Editable as="p" path={`testimonials.${t.id}.quote`} multiline className="flex-1 text-[.98rem] leading-relaxed" style={{ color: 'var(--tl-ink)' }}>{t.quote}</Editable>
+              <div className="mt-5 flex items-center gap-3">
+                {t.photoUrl
+                  ? <EditableImage path={`testimonials.${t.id}.photoUrl`} src={t.photoUrl} alt={t.name} className="size-11 rounded-full object-cover shrink-0" />
+                  : <span className="grid place-items-center size-11 rounded-full shrink-0 site-head font-bold text-[1.05rem]" style={sk.icon(i)}>{(t.name || '?').charAt(0)}</span>}
+                <div className="min-w-0">
+                  <Editable as="b" path={`testimonials.${t.id}.name`} className="block site-head font-semibold text-[.95rem]" style={{ color: 'var(--tl-ink)' }}>{t.name}</Editable>
+                  <Editable as="span" path={`testimonials.${t.id}.role`} className="text-[.8rem]" style={{ color: 'var(--tl-slate)' }}>{t.role}</Editable>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ============ PRICING (Bảng giá dịch vụ) ============ */
+export function Pricing() {
+  const { pricing, pricingEyebrow, pricingTitle, pricingTitleHighlight, pricingLead } = useContent((s) => s.published)
+  const sk = useSkin()
+  return (
+    <section id="bang-gia" className="py-14 lg:py-24" style={{ background: sk.bgAlt }}>
+      <div className="container max-w-3xl">
+        <div className="text-center mb-10 flex flex-col items-center">
+          <Eyebrow center path="pricingEyebrow">{pricingEyebrow}</Eyebrow>
+          <Title text={pricingTitle} hi={pricingTitleHighlight} path="pricingTitle" hiPath="pricingTitleHighlight" />
+          <Editable as="p" path="pricingLead" multiline className="mt-3 text-[1.02rem] max-w-[60ch]" style={{ color: 'var(--tl-slate)' }}>{pricingLead}</Editable>
+        </div>
+        <div className={`${sk.cardCls} overflow-hidden divide-y`} style={{ ...sk.cardStyle, borderColor: 'var(--tl-line)' } as React.CSSProperties}>
+          {pricing.map((p) => (
+            <div key={p.id} className="flex items-center gap-4 p-4 sm:px-6" style={{ borderColor: 'var(--tl-line)' }}>
+              <div className="flex-1 min-w-0">
+                <Editable as="b" path={`pricing.${p.id}.name`} className="block site-head font-semibold text-[1.02rem]" style={{ color: 'var(--tl-ink)' }}>{p.name}</Editable>
+                <Editable as="span" path={`pricing.${p.id}.note`} className="text-[.85rem]" style={{ color: 'var(--tl-slate)' }}>{p.note}</Editable>
+              </div>
+              <Editable as="span" path={`pricing.${p.id}.price`} className="site-head font-bold text-[1.12rem] shrink-0 whitespace-nowrap" style={{ color: 'var(--tl-primary)' }}>{p.price}</Editable>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ============ GALLERY (Thư viện ảnh) ============ */
+export function Gallery() {
+  const { gallery, galleryEyebrow, galleryTitle, galleryTitleHighlight } = useContent((s) => s.published)
+  return (
+    <section id="thu-vien" className="py-14 lg:py-24">
+      <div className="container">
+        <div className="max-w-[640px] mx-auto text-center mb-11 flex flex-col items-center"><Eyebrow center path="galleryEyebrow">{galleryEyebrow}</Eyebrow><Title text={galleryTitle} hi={galleryTitleHighlight} path="galleryTitle" hiPath="galleryTitleHighlight" /></div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {gallery.map((g) => (
+            <figure key={g.id} className="relative rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--tl-line)' }}>
+              <EditableImage path={`gallery.${g.id}.url`} src={g.url} alt={g.caption} className="w-full object-cover aspect-[4/3]" />
+              {g.caption && (
+                <figcaption className="absolute inset-x-0 bottom-0 px-3.5 py-2.5 text-white text-[.86rem] font-medium" style={{ background: 'linear-gradient(0deg,rgba(6,20,40,.72),transparent)' }}>
+                  <Editable as="span" path={`gallery.${g.id}.caption`}>{g.caption}</Editable>
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }

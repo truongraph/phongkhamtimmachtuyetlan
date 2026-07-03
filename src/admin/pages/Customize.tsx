@@ -1,6 +1,6 @@
 import { useRef, useState, useLayoutEffect, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useContent, type SiteContent } from '@/store/content'
+import { useContent, type SiteContent, type SectionType } from '@/store/content'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
@@ -14,6 +14,7 @@ import { CSS } from '@dnd-kit/utilities'
 import {
   X, Home, GripVertical, Eye, EyeOff, Monitor, Tablet, Smartphone, RefreshCw, ExternalLink, Check, Undo2, Loader2,
   Blocks, User, Stethoscope, ShieldCheck, HeartPulse, GraduationCap, MapPin, SlidersHorizontal, BarChart3,
+  HelpCircle, MessageSquareQuote, CircleDollarSign, Images,
   ChevronRight, ChevronLeft, type LucideIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -30,7 +31,9 @@ const DEVICES = {
   mobile: { w: 390, h: 812, label: 'Điện thoại', I: Smartphone },
 } as const
 
-type PanelKey = 'layout' | 'hero' | 'stats' | 'about' | 'services' | 'why' | 'specialties' | 'journey' | 'contact' | 'settings'
+type PanelKey =
+  | 'layout' | 'hero' | 'stats' | 'about' | 'services' | 'why' | 'specialties' | 'journey'
+  | 'faq' | 'testimonials' | 'pricing' | 'gallery' | 'contact' | 'settings'
 interface PanelDef { key: PanelKey; label: string; icon: LucideIcon; desc: string }
 const CONTENT_PANELS: PanelDef[] = [
   { key: 'layout', label: 'Bố cục & thứ tự', icon: Blocks, desc: 'Sắp xếp · ẩn/hiện các phần' },
@@ -41,12 +44,22 @@ const CONTENT_PANELS: PanelDef[] = [
   { key: 'why', label: 'Cam kết', icon: ShieldCheck, desc: 'Lý do chọn phòng khám' },
   { key: 'specialties', label: 'Chuyên môn', icon: HeartPulse, desc: 'Các lĩnh vực chuyên sâu' },
   { key: 'journey', label: 'Đào tạo & Nghiên cứu', icon: GraduationCap, desc: 'Timeline & nghiên cứu' },
+  { key: 'testimonials', label: 'Cảm nhận bệnh nhân', icon: MessageSquareQuote, desc: 'Đánh giá của bệnh nhân' },
+  { key: 'faq', label: 'Câu hỏi thường gặp', icon: HelpCircle, desc: 'Hỏi – đáp' },
+  { key: 'pricing', label: 'Bảng giá dịch vụ', icon: CircleDollarSign, desc: 'Danh sách giá' },
+  { key: 'gallery', label: 'Thư viện ảnh', icon: Images, desc: 'Lưới ảnh phòng khám' },
   { key: 'contact', label: 'Liên hệ', icon: MapPin, desc: 'Tiêu đề & mô tả phần liên hệ' },
 ]
 const SYSTEM_PANELS: PanelDef[] = [
   { key: 'settings', label: 'Cài đặt chung', icon: SlidersHorizontal, desc: 'Màu, phông, thông tin, logo, SEO…' },
 ]
 const ALL_PANELS = [...CONTENT_PANELS, ...SYSTEM_PANELS]
+
+// Panel nào tương ứng 1 phần bật/tắt được — nếu phần đó ĐANG TẮT thì ẩn panel khỏi menu.
+const PANEL_SECTION: Partial<Record<PanelKey, SectionType>> = {
+  stats: 'stats', about: 'about', services: 'services', why: 'why', specialties: 'specialties',
+  journey: 'journey', testimonials: 'testimonials', faq: 'faq', pricing: 'pricing', gallery: 'gallery', contact: 'contact',
+}
 
 // Ánh xạ ĐƯỜNG DẪN trường (khi bấm bút chì ở preview) → panel + phần con để sidebar nhảy tới.
 type NavTarget = { panel: PanelKey; section: string | null }
@@ -67,6 +80,14 @@ const NAV_RULES: { m: RegExp; panel: PanelKey; section?: string }[] = [
   { m: /^specialties(Eyebrow|Title|TitleHighlight)$/, panel: 'specialties', section: 'head' },
   { m: /^research\./, panel: 'journey', section: 'research' },
   { m: /^journey(Eyebrow|Title|TitleHighlight)$/, panel: 'journey', section: 'head' },
+  { m: /^faqs\./, panel: 'faq', section: 'items' },
+  { m: /^faq(Eyebrow|Title|TitleHighlight)$/, panel: 'faq', section: 'head' },
+  { m: /^testimonials\./, panel: 'testimonials', section: 'items' },
+  { m: /^testimonials(Eyebrow|Title|TitleHighlight)$/, panel: 'testimonials', section: 'head' },
+  { m: /^pricing\./, panel: 'pricing', section: 'items' },
+  { m: /^pricing(Eyebrow|Title|TitleHighlight|Lead)$/, panel: 'pricing', section: 'head' },
+  { m: /^gallery\./, panel: 'gallery', section: 'items' },
+  { m: /^gallery(Eyebrow|Title|TitleHighlight)$/, panel: 'gallery', section: 'head' },
   { m: /^info\.hours/, panel: 'settings', section: 'hours' },
   { m: /^info\.logoUrl/, panel: 'settings', section: 'logo' },
   { m: /^info\.(clinicName|tagline|phone|slogan)/, panel: 'settings', section: 'info' },
@@ -263,6 +284,10 @@ export function Customize() {
   const boxW = isDesktop ? avail.w : Math.round(D.w * scale)
   const boxH = isDesktop ? avail.h : Math.round(D.h * scale)
 
+  // Phần nào ĐANG TẮT trong Bố cục thì ẩn khỏi menu (bật lại mới hiện).
+  const visibleTypes = new Set(content.sections.filter((s) => s.visible).map((s) => s.type))
+  const showPanel = (k: PanelKey) => { const t = PANEL_SECTION[k]; return !t || visibleTypes.has(t) }
+
   // Điều hướng 2 cấp: panel (level 1) → phần con (level 2).
   const panelDef = panel ? ALL_PANELS.find((p) => p.key === panel) : null
   const FlatComp = panel === 'layout' ? LayoutPanel : panel === 'stats' ? StatsPanel : panel === 'contact' ? ContactPanel : null
@@ -331,7 +356,7 @@ export function Customize() {
               // GỐC: danh sách các panel
               <div>
                 <GroupLabel>Nội dung trang</GroupLabel>
-                {CONTENT_PANELS.map((p) => <NavRow key={p.key} p={p} onClick={() => openPanel(p.key)} />)}
+                {CONTENT_PANELS.filter((p) => showPanel(p.key)).map((p) => <NavRow key={p.key} p={p} onClick={() => openPanel(p.key)} />)}
                 <GroupLabel>Giao diện chung</GroupLabel>
                 {SYSTEM_PANELS.map((p) => <NavRow key={p.key} p={p} onClick={() => openPanel(p.key)} />)}
                 <p className="px-4 py-3 text-[.72rem] text-muted-foreground leading-relaxed">

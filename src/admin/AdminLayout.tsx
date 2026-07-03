@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Popover } from '@/components/ui/popover'
 import {
   LayoutDashboard, Blocks, Home, BarChart3, User, Stethoscope, ShieldCheck, HeartPulse,
-  GraduationCap, MapPin, Settings, KeyRound, LogOut, ExternalLink, Menu, X, CalendarClock, Palette,
-  BookOpen, Search, ChevronDown, UserRound, PanelLeft, DatabaseBackup, Check, Undo2, Wrench, Bell, Sparkles,
+  GraduationCap, MessageSquareQuote, HelpCircle, CircleDollarSign, Images,
+  MapPin, Settings, KeyRound, LogOut, ExternalLink, Menu, X, CalendarClock, Palette,
+  BookOpen, Search, ChevronDown, UserRound, PanelLeft, DatabaseBackup, Check, Undo2, Wrench, Bell, Sparkles, Sun, Moon,
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useContent } from '@/store/content'
 import { useBookings } from '@/store/bookings'
@@ -18,6 +19,29 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { SEARCH_INDEX } from './searchIndex'
 import { CHANGELOG } from '@/lib/changelog'
+import { useTheme } from '@/store/theme'
+
+/** Tooltip nhỏ hiện dưới nút khi rê chuột. */
+function TipLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[60] whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[.72rem] font-medium text-background opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+      {children}
+    </span>
+  )
+}
+
+/** Nút chuyển Sáng/Tối cho trang quản trị. */
+function ThemeToggle() {
+  const dark = useTheme((s) => s.dark)
+  const toggle = useTheme((s) => s.toggle)
+  return (
+    <button type="button" onClick={toggle} aria-label={dark ? 'Chuyển chế độ sáng' : 'Chuyển chế độ tối'}
+      className="group relative grid place-items-center size-9 rounded-lg border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+      {dark ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+      <TipLabel>{dark ? 'Chế độ sáng' : 'Chế độ tối'}</TipLabel>
+    </button>
+  )
+}
 
 export function RequireAuth({ children }: { children: JSX.Element }) {
   const loggedIn = useAuth((s) => s.loggedIn)
@@ -41,12 +65,23 @@ const NAV = [
   { to: '/admin/why', icon: ShieldCheck, label: 'Cam kết' },
   { to: '/admin/specialties', icon: HeartPulse, label: 'Chuyên môn' },
   { to: '/admin/journey', icon: GraduationCap, label: 'Đào tạo & Nghiên cứu' },
+  { to: '/admin/testimonials', icon: MessageSquareQuote, label: 'Cảm nhận bệnh nhân' },
+  { to: '/admin/faq', icon: HelpCircle, label: 'Câu hỏi thường gặp' },
+  { to: '/admin/pricing', icon: CircleDollarSign, label: 'Bảng giá dịch vụ' },
+  { to: '/admin/gallery', icon: Images, label: 'Thư viện ảnh' },
   { to: '/admin/contact', icon: MapPin, label: 'Liên hệ' },
   { section: 'Hệ thống' },
   { to: '/admin/settings', icon: Settings, label: 'Cài đặt chung' },
   { to: '/admin/themes', icon: Palette, label: 'Giao diện mẫu' },
   { to: '/admin/backup', icon: DatabaseBackup, label: 'Sao lưu & Email' },
 ] as const
+
+// Mục nav tương ứng 1 phần bật/tắt được — nếu phần đó ĐANG TẮT thì ẩn mục khỏi menu.
+const ROUTE_SECTION: Record<string, string> = {
+  '/admin/stats': 'stats', '/admin/about': 'about', '/admin/services': 'services', '/admin/why': 'why',
+  '/admin/specialties': 'specialties', '/admin/journey': 'journey', '/admin/testimonials': 'testimonials',
+  '/admin/faq': 'faq', '/admin/pricing': 'pricing', '/admin/gallery': 'gallery', '/admin/contact': 'contact',
+}
 
 type PageItem = { to: string; label: string; icon: typeof Home }
 const PAGES: PageItem[] = NAV.filter((n) => 'to' in n).map((n) => ({ to: (n as any).to, label: (n as any).label, icon: (n as any).icon }))
@@ -76,9 +111,10 @@ function NotifyBell() {
     <Popover open={open} onOpenChange={setOpen} align="end" className="w-[21rem] p-0"
       trigger={
         <button type="button" onClick={() => setOpen((o) => !o)} aria-label="Thông báo đặt lịch"
-          className="relative grid place-items-center size-9 rounded-full border hover:bg-secondary transition-colors">
-          <Bell className="size-[18px] text-foreground/70" />
+          className="group relative grid place-items-center size-9 rounded-lg border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+          <Bell className="size-[18px]" />
           {newCount > 0 && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-destructive text-destructive-foreground text-[.6rem] font-bold ring-2 ring-background">{newCount > 9 ? '9+' : newCount}</span>}
+          <TipLabel>Thông báo đặt lịch</TipLabel>
         </button>
       }>
       <div className="flex items-center justify-between px-3.5 py-2.5 border-b">
@@ -106,7 +142,8 @@ function NotifyBell() {
 
 /** Nhật ký cập nhật (dev log) — chấm đỏ nếu có bản mới chưa xem. */
 function DevLog() {
-  const latest = CHANGELOG[0]?.date ?? ''
+  // Khoá theo ngày + tiêu đề để mục mới CÙNG NGÀY vẫn báo "có bản mới".
+  const latest = CHANGELOG[0] ? `${CHANGELOG[0].date}·${CHANGELOG[0].title}` : ''
   const [open, setOpen] = useState(false)
   const [seen, setSeen] = useState(() => (typeof localStorage !== 'undefined' ? localStorage.getItem('tl_devlog_seen') : null))
   const hasNew = !!latest && seen !== latest
@@ -115,9 +152,10 @@ function DevLog() {
     <Popover open={open} onOpenChange={onOpenChange} align="end" className="w-[22rem] p-0"
       trigger={
         <button type="button" onClick={() => onOpenChange(!open)} aria-label="Nhật ký cập nhật"
-          className="relative grid place-items-center size-9 rounded-full border hover:bg-secondary transition-colors">
-          <Sparkles className="size-[18px] text-foreground/70" />
+          className="group relative grid place-items-center size-9 rounded-lg border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+          <Sparkles className="size-[18px]" />
           {hasNew && <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-primary ring-2 ring-background" />}
+          <TipLabel>Nhật ký cập nhật</TipLabel>
         </button>
       }>
       <div className="px-3.5 py-2.5 border-b font-semibold text-sm flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Nhật ký cập nhật</div>
@@ -176,52 +214,93 @@ function SideNavLink({ item, mini, count, onClick }: { item: NavItem; mini: bool
   )
 }
 
-/** Ô tìm nhanh: gõ tên trang HOẶC tên mục/trường bên trong (vd "ảnh", "màu", "giờ làm việc"). */
+/** Bảng lệnh (command palette): bấm ô tìm hoặc Ctrl/⌘+K để mở modal ở giữa màn hình. */
 type SearchResult = { label: string; page: string; to: string }
 function FormSearch() {
   const nav = useNavigate()
-  const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
+  const [q, setQ] = useState('')
+  const [active, setActive] = useState(0)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setOpen(true) }
+      else if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+  useEffect(() => {
+    if (!open) return
+    setQ(''); setActive(0)
+    const id = requestAnimationFrame(() => inputRef.current?.focus())
+    return () => cancelAnimationFrame(id)
+  }, [open])
+
   const nq = normalizeVN(q)
   const results: SearchResult[] = nq
     ? SEARCH_INDEX
         .filter((it) => normalizeVN(`${it.label} ${it.page} ${it.keywords || ''}`).includes(nq))
-        .slice(0, 10)
+        .slice(0, 12)
         .map((it) => ({ label: it.label, page: it.page, to: it.to }))
-    : PAGES.map((p) => ({ label: p.label, page: '', to: p.to })).slice(0, 10)
+    : PAGES.map((p) => ({ label: p.label, page: '', to: p.to }))
+
   const go = (to: string) => { nav(to); setOpen(false); setQ('') }
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(a + 1, results.length - 1)) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)) }
+    else if (e.key === 'Enter') { e.preventDefault(); if (results[active]) go(results[active].to) }
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen} matchWidth
-      trigger={
-        <div className="relative w-full">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-          <Input
-            value={q}
-            onFocus={() => setOpen(true)}
-            onChange={(e) => { setQ(e.target.value); setOpen(true) }}
-            onKeyDown={(e) => { if (e.key === 'Enter' && results[0]) go(results[0].to) }}
-            placeholder="Tìm trang hoặc mục (vd: ảnh, màu, SEO…)"
-            className="h-9 pl-8 bg-secondary/60 border-transparent focus-visible:bg-background"
-          />
-        </div>
-      }>
-      <div className="max-h-80 overflow-y-auto p-1">
-        {results.length === 0
-          ? <div className="px-2 py-6 text-center text-sm text-muted-foreground">Không tìm thấy mục nào</div>
-          : results.map((r, i) => {
-            const Icon = ICON_BY_ROUTE[r.to] ?? Search
-            return (
-              <button key={`${r.to}-${i}`} type="button" onClick={() => go(r.to)} className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left hover:bg-accent">
-                <Icon className="size-4 text-primary shrink-0" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm truncate">{r.label}</span>
-                  {r.page && <span className="block text-[.7rem] text-muted-foreground truncate">trong {r.page}</span>}
-                </span>
-              </button>
-            )
-          })}
+    <>
+      {/* Ô tìm kiếm (input thật, chỉ đọc) — bấm/Enter để mở bảng lệnh */}
+      <div className="relative w-full">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+        <input
+          readOnly
+          onClick={() => setOpen(true)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(true) } }}
+          placeholder="Tìm trang hoặc mục…"
+          className="w-full h-9 rounded-lg border bg-secondary/40 pl-9 pr-16 text-sm cursor-pointer hover:bg-secondary/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring placeholder:text-muted-foreground"
+        />
+        <kbd className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex items-center rounded border bg-background px-1.5 h-5 text-[.65rem] font-medium text-muted-foreground pointer-events-none">Ctrl K</kbd>
       </div>
-    </Popover>
+
+      {open && createPortal(
+        <div className="fixed inset-0 z-[80] flex items-start justify-center p-4 pt-[12vh] bg-black/50 backdrop-blur-sm animate-in fade-in duration-150" onMouseDown={() => setOpen(false)}>
+          <div className="w-full max-w-xl rounded-xl border bg-popover text-popover-foreground shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-150" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2.5 px-4 border-b">
+              <Search className="size-[18px] text-muted-foreground shrink-0" />
+              <input ref={inputRef} value={q} onChange={(e) => { setQ(e.target.value); setActive(0) }} onKeyDown={onKeyDown}
+                placeholder="Chạy lệnh hoặc tìm kiếm…" className="flex-1 h-12 bg-transparent outline-none text-[.95rem] placeholder:text-muted-foreground" />
+              <kbd className="hidden sm:flex items-center rounded border bg-muted px-1.5 h-5 text-[.65rem] font-medium text-muted-foreground">Esc</kbd>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto p-2">
+              <div className="px-2 py-1.5 text-[.66rem] font-bold uppercase tracking-wider text-muted-foreground">{nq ? 'Kết quả' : 'Trang quản trị'}</div>
+              {results.length === 0
+                ? <div className="px-3 py-10 text-center text-sm text-muted-foreground">Không tìm thấy mục nào cho “{q}”.</div>
+                : results.map((r, i) => {
+                  const Icon = ICON_BY_ROUTE[r.to] ?? Search
+                  return (
+                    <button key={`${r.to}-${i}`} type="button" onMouseMove={() => setActive(i)} onClick={() => go(r.to)}
+                      className={cn('flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors', active === i ? 'bg-accent' : 'hover:bg-accent/60')}>
+                      <Icon className="size-[18px] text-primary shrink-0" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm truncate">{r.label}</span>
+                        {r.page && <span className="block text-[.7rem] text-muted-foreground truncate">trong {r.page}</span>}
+                      </span>
+                      {active === i && <span className="text-muted-foreground text-xs shrink-0">↵</span>}
+                    </button>
+                  )
+                })}
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
+    </>
   )
 }
 
@@ -230,6 +309,9 @@ export function AdminLayout() {
   const logout = useAuth((s) => s.logout)
   const username = useAuth((s) => s.username)
   const info = useContent((s) => s.content.info)
+  const sections = useContent((s) => s.content.sections)
+  const visibleTypes = new Set(sections.filter((s) => s.visible).map((s) => s.type))
+  const navVisible = (item: (typeof NAV)[number]) => !('to' in item) || !ROUTE_SECTION[item.to] || visibleTypes.has(ROUTE_SECTION[item.to] as any)
   const dirty = useContent((s) => s.dirty)
   const saveContent = useContent((s) => s.save)
   const discardContent = useContent((s) => s.discard)
@@ -253,7 +335,7 @@ export function AdminLayout() {
         )}
       </div>
       <nav className="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-1">
-        {NAV.map((item, i) =>
+        {NAV.filter(navVisible).map((item, i) =>
           'section' in item
             ? (mini
               ? <div key={i} className="my-2 border-t mx-1" />
@@ -295,12 +377,13 @@ export function AdminLayout() {
           <Button variant="outline" size="icon" className="lg:hidden shrink-0" onClick={() => setOpen(true)}><Menu className="size-5" /></Button>
 
           {/* Trái: tìm kiếm trang */}
-          <div className="hidden sm:block w-56 md:w-72"><FormSearch /></div>
+          <div className="hidden sm:block w-64 md:w-96 lg:w-[30rem]"><FormSearch /></div>
 
           <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
             <NotifyBell />
             <DevLog />
-            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex"><Link to="/" target="_blank"><ExternalLink className="size-4" /> Xem website</Link></Button>
+            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex rounded-lg"><Link to="/" target="_blank"><ExternalLink className="size-4" /> Xem website</Link></Button>
 
             {/* Phải: menu tài khoản — dựng trên cùng Popover với Combobox cho đồng bộ giao diện */}
             <Popover
@@ -312,10 +395,11 @@ export function AdminLayout() {
                 <button
                   type="button"
                   onClick={() => setAcctOpen((o) => !o)}
-                  className="flex items-center gap-2 rounded-full border pl-1 pr-2.5 py-1 hover:bg-secondary transition-colors"
+                  aria-label="Tài khoản"
+                  className="flex items-center gap-0.5 rounded-lg border p-0.5 pr-1 hover:bg-muted transition-colors"
                 >
                   <span className="grid place-items-center size-8 rounded-full bg-gradient-to-br from-primary to-primary/70 text-white"><UserRound className="size-[18px]" /></span>
-                  <span className="hidden sm:block text-sm font-medium max-w-[160px] truncate">{username}</span>
+                  <span className="hidden sm:block text-sm font-medium px-0.5">Tài khoản</span>
                   <ChevronDown className={cn('size-4 text-muted-foreground transition-transform', acctOpen && 'rotate-180')} />
                 </button>
               }
@@ -344,7 +428,7 @@ export function AdminLayout() {
         collapsed ? 'lg:left-[74px]' : 'lg:left-[268px]',
         dirty ? 'translate-y-0' : 'translate-y-[140%] pointer-events-none')}>
         <div className="mx-4 lg:mx-auto mb-4 rounded-2xl border bg-background/95 backdrop-blur shadow-2xl px-4 py-3 flex items-center gap-3 max-w-3xl">
-          <span className="grid place-items-center size-9 rounded-full bg-amber-100 shrink-0"><span className="size-2.5 rounded-full bg-amber-500 animate-pulse" /></span>
+          <span className="grid place-items-center size-9 rounded-full bg-amber-100 dark:bg-amber-500/20 shrink-0"><span className="size-2.5 rounded-full bg-amber-500 animate-pulse" /></span>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold">Có thay đổi chưa lưu</div>
             <div className="text-xs text-muted-foreground hidden sm:block">Bấm “Lưu thay đổi” để cập nhật lên website.</div>

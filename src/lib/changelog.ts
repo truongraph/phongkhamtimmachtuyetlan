@@ -5,6 +5,29 @@ export interface ChangeEntry { date: string; title: string; notes: string[] }
 export const CHANGELOG: ChangeEntry[] = [
   {
     date: '2026-07-03',
+    title: 'Thêm 4 khối nội dung mới cho trang',
+    notes: [
+      'Bổ sung 4 khối có thể bật/tắt trong “Bố cục”: Câu hỏi thường gặp (FAQ), Cảm nhận bệnh nhân, Bảng giá dịch vụ, Thư viện ảnh.',
+      'Vào “Bố cục” bật khối muốn dùng — khối sẽ hiện trên website và có mục riêng trong menu để chỉnh sửa.',
+      'Mỗi khối đều thêm/sửa/xoá được, sửa trực tiếp trên khung xem trước (bút chì) hoặc qua form.',
+      'Đã có sẵn nội dung mẫu để bạn chỉ cần sửa lại cho đúng phòng khám.',
+    ],
+  },
+  {
+    date: '2026-07-03',
+    title: 'Tùy chỉnh giao diện trực quan & Chế độ tối',
+    notes: [
+      'Gộp “Bố cục” và “Sửa trực quan” thành một trang “Tùy chỉnh giao diện” toàn màn hình, kiểu WordPress.',
+      'Sửa ngay trên khung xem trước: rê chuột vào chữ/ảnh sẽ hiện cây bút chì — bấm để sửa tại chỗ; bảng bên trái tự mở đúng phần đang sửa.',
+      'Bảng điều khiển: kéo–thả sắp xếp & ẩn/hiện các phần, thêm/sửa/xoá từng mục; xem thử máy tính · máy tính bảng · điện thoại (chuyển mượt); nút ẩn bảng để xem rộng.',
+      'Nút “Xuất bản” có hiệu ứng đang lưu rồi mới báo thành công; cảnh báo khôi phục nếu rời đi khi chưa xuất bản.',
+      'Thêm phần “Dải số liệu” để tự sửa các con số nổi bật (năm kinh nghiệm, chứng chỉ…).',
+      'Thanh thông tin đầu trang (giờ, địa chỉ, hotline) và dải kêu gọi cuối trang giờ đều sửa được trực tiếp.',
+      'Thêm Chế độ Tối / Sáng cho trang quản trị (nút ☀️/🌙 trên đầu trang).',
+    ],
+  },
+  {
+    date: '2026-07-03',
     title: 'Đặt lịch & Email',
     notes: [
       'Nút “Đặt lịch khám” giờ mở popup ngay tại chỗ, không phải cuộn lên đầu trang.',

@@ -21,6 +21,11 @@ export const SEARCH_INDEX: SearchItem[] = [
   // Đào tạo & Nghiên cứu
   { label: 'Bằng cấp · Chứng chỉ · Kinh nghiệm', page: 'Đào tạo & Nghiên cứu', to: '/admin/journey', keywords: 'dao tao bang cap chung chi kinh nghiem timeline' },
   { label: 'Nghiên cứu khoa học', page: 'Đào tạo & Nghiên cứu', to: '/admin/journey', keywords: 'nghien cuu research' },
+  // Khối tùy chọn
+  { label: 'Cảm nhận bệnh nhân (đánh giá)', page: 'Cảm nhận bệnh nhân', to: '/admin/testimonials', keywords: 'cam nhan danh gia review testimonial benh nhan khach hang' },
+  { label: 'Câu hỏi thường gặp (FAQ)', page: 'Câu hỏi thường gặp', to: '/admin/faq', keywords: 'cau hoi thuong gap faq hoi dap' },
+  { label: 'Bảng giá dịch vụ', page: 'Bảng giá dịch vụ', to: '/admin/pricing', keywords: 'bang gia dich vu chi phi pricing gia tien' },
+  { label: 'Thư viện ảnh', page: 'Thư viện ảnh', to: '/admin/gallery', keywords: 'thu vien anh gallery hinh anh phong kham' },
   // Liên hệ
   { label: 'Tiêu đề & mô tả liên hệ', page: 'Liên hệ', to: '/admin/contact', keywords: 'lien he contact tieu de mo ta' },
   // Cài đặt chung

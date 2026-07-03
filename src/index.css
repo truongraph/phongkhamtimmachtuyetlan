@@ -39,7 +39,41 @@
     --tl-line: #e0eaf3;
     --tl-radius: 14px;
   }
+
+  /* Chế độ tối — CHỈ áp cho trang quản trị (bật .dark trên <html> ở route /admin). */
+  .dark {
+    color-scheme: dark;
+    --background: 220 23% 8%;            /* nền sâu (như GitHub) */
+    --foreground: 213 20% 92%;
+    --card: 222 18% 12%;                 /* thẻ nổi bằng NỀN, không bằng viền */
+    --card-foreground: 213 20% 92%;
+    --popover: 222 18% 13%;
+    --popover-foreground: 213 20% 92%;
+    --primary: 213 90% 56%;             /* xanh tươi, không chói */
+    --primary-foreground: 0 0% 100%;    /* chữ TRẮNG trên nút xanh */
+    --secondary: 216 14% 16%;
+    --secondary-foreground: 213 20% 92%;
+    --muted: 216 14% 15%;
+    --muted-foreground: 216 11% 58%;
+    --accent: 216 14% 18%;
+    --accent-foreground: 213 20% 94%;
+    --success: 145 58% 47%;
+    --success-foreground: 0 0% 100%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 216 14% 17%;              /* viền dịu, hé nhẹ trên nền tối */
+    --input: 218 14% 22%;              /* ô nhập vừa đủ thấy */
+    --ring: 213 90% 56%;
+  }
+
+  /* QUAN TRỌNG: mặc định mọi `border` dùng token (nếu thiếu dòng này, Tailwind
+     cho border màu xám sáng #e5e7eb → dark mode luôn bị viền chói). */
+  * { border-color: hsl(var(--border)); }
 }
+
+/* Nền body theo token (trắng khi sáng, tối khi .dark) + chuyển mượt khi đổi chế độ. */
+body { background-color: hsl(var(--background)); }
+.dark, .dark body { transition: background-color .2s ease, color .2s ease; }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }

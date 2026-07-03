@@ -58,7 +58,7 @@ function SmtpEmailCard() {
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><Mail className="size-5 text-primary" /> Nhận đặt lịch qua Gmail (SMTP)</CardTitle></CardHeader>
         <CardContent>
-          <div className="rounded-lg border border-amber-300 bg-amber-50 text-amber-800 p-4 text-sm">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 p-4 text-sm">
             Cấu hình SMTP cần <b>chế độ online (Supabase)</b>. Hãy điền Supabase vào <b>.env</b> để bật. Khi chưa có, bạn vẫn có thể dùng <b>Web3Forms</b> ở khung bên dưới.
           </div>
         </CardContent>

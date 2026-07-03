@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { initContentSync } from './lib/sync'
 import { initBookingsRealtime } from './store/bookings'
+import { useTheme } from './store/theme'
 import SitePage from './site/SitePage'
 import { Login } from './admin/Login'
 import { RequireAuth, AdminLayout } from './admin/AdminLayout'
@@ -10,6 +11,7 @@ import { Customize } from './admin/pages/Customize'
 import { Settings } from './admin/pages/Settings'
 import { HeroEditor } from './admin/pages/HeroEditor'
 import { StatsEditor } from './admin/pages/StatsEditor'
+import { FaqEditor, TestimonialsEditor, PricingEditor, GalleryEditor } from './admin/pages/BlockEditors'
 import { AboutEditor } from './admin/pages/AboutEditor'
 import { ServicesEditor } from './admin/pages/ServicesEditor'
 import { WhyEditor } from './admin/pages/WhyEditor'
@@ -20,6 +22,17 @@ import { Bookings } from './admin/pages/Bookings'
 import { Themes } from './admin/pages/Themes'
 import { Backup } from './admin/pages/Backup'
 
+/** Bật/tắt lớp .dark trên <html> — CHỈ ở route /admin (trừ trang Tùy chỉnh full-screen). */
+function ThemeManager() {
+  const dark = useTheme((s) => s.dark)
+  const { pathname } = useLocation()
+  useEffect(() => {
+    const on = dark && pathname.startsWith('/admin') && pathname !== '/admin/customize'
+    document.documentElement.classList.toggle('dark', on)
+  }, [dark, pathname])
+  return null
+}
+
 export default function App() {
   useEffect(() => {
     initContentSync()
@@ -27,6 +40,7 @@ export default function App() {
   }, [])
   return (
     <BrowserRouter>
+      <ThemeManager />
       <Routes>
         <Route path="/" element={<SitePage />} />
         <Route path="/admin/login" element={<Login />} />
@@ -47,6 +61,10 @@ export default function App() {
           <Route path="why" element={<WhyEditor />} />
           <Route path="specialties" element={<SpecialtiesEditor />} />
           <Route path="journey" element={<JourneyEditor />} />
+          <Route path="testimonials" element={<TestimonialsEditor />} />
+          <Route path="faq" element={<FaqEditor />} />
+          <Route path="pricing" element={<PricingEditor />} />
+          <Route path="gallery" element={<GalleryEditor />} />
           <Route path="contact" element={<ContactEditor />} />
           <Route path="settings" element={<Settings />} />
           <Route path="backup" element={<Backup />} />
