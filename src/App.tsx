@@ -6,9 +6,10 @@ import SitePage from './site/SitePage'
 import { Login } from './admin/Login'
 import { RequireAuth, AdminLayout } from './admin/AdminLayout'
 import { Dashboard } from './admin/pages/Dashboard'
-import { LayoutPreview } from './admin/pages/LayoutPreview'
+import { Customize } from './admin/pages/Customize'
 import { Settings } from './admin/pages/Settings'
 import { HeroEditor } from './admin/pages/HeroEditor'
+import { StatsEditor } from './admin/pages/StatsEditor'
 import { AboutEditor } from './admin/pages/AboutEditor'
 import { ServicesEditor } from './admin/pages/ServicesEditor'
 import { WhyEditor } from './admin/pages/WhyEditor'
@@ -29,13 +30,18 @@ export default function App() {
       <Routes>
         <Route path="/" element={<SitePage />} />
         <Route path="/admin/login" element={<Login />} />
+        {/* Tùy chỉnh giao diện: toàn màn hình, NGOÀI khung quản trị (không sidebar) */}
+        <Route path="/admin/customize" element={<RequireAuth><Customize /></RequireAuth>} />
         <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<Dashboard />} />
           <Route path="bookings" element={<Bookings />} />
-          <Route path="layout" element={<LayoutPreview />} />
-          <Route path="preview" element={<Navigate to="/admin/layout" replace />} />
+          {/* Các đường cũ → gộp về Tùy chỉnh giao diện */}
+          <Route path="layout" element={<Navigate to="/admin/customize" replace />} />
+          <Route path="editor" element={<Navigate to="/admin/customize" replace />} />
+          <Route path="preview" element={<Navigate to="/admin/customize" replace />} />
           <Route path="themes" element={<Themes />} />
           <Route path="hero" element={<HeroEditor />} />
+          <Route path="stats" element={<StatsEditor />} />
           <Route path="about" element={<AboutEditor />} />
           <Route path="services" element={<ServicesEditor />} />
           <Route path="why" element={<WhyEditor />} />

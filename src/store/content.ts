@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { setByPath } from '@/lib/path'
 
 /* ============ TYPES ============ */
 export type SectionType =
@@ -104,6 +105,8 @@ export interface SiteContent {
   contactTitle: string
   contactTitleHighlight: string
   contactLead: string
+  /** Dải kêu gọi cuối trang (trước footer). */
+  cta: { title: string; titleHighlight: string; lead: string }
   footerAbout: string
   booking: { notifyEmail: string; web3formsKey: string }
   sections: SectionMeta[]
@@ -252,6 +255,11 @@ export const DEFAULT_CONTENT: SiteContent = {
   contactTitle: 'Đến khám tại',
   contactTitleHighlight: 'Tuyết Lan',
   contactLead: 'Vui lòng gọi trước để được sắp xếp lịch hẹn thuận tiện nhất.',
+  cta: {
+    title: 'Chăm sóc trái tim bạn',
+    titleHighlight: 'ngay hôm nay',
+    lead: 'Đừng để những dấu hiệu nhỏ trở thành vấn đề lớn. Đặt lịch khám với bác sĩ chuyên khoa Nội tim mạch.',
+  },
   footerAbout: 'Phụ trách bởi ThS. BSCKII. Trần Thị Tuyết Lan — hoạt động liên tục từ 2015 với sứ mệnh chẩn đoán chính xác và điều trị hiệu quả cho mọi người bệnh.',
   booking: { notifyEmail: '', web3formsKey: '' },
   sections: [
@@ -275,6 +283,10 @@ interface ContentState {
   pubTs: string
   /** Chỉnh nội dung form → tạo BẢN NHÁP (dirty). Phải bấm "Lưu" mới áp dụng, "Hoàn tác" để bỏ. */
   set: (updater: (c: SiteContent) => void) => void
+  /** Sửa 1 trường theo đường dẫn (vd "hero.title") → BẢN NHÁP (dirty). Dùng cho "Sửa trực quan". */
+  setPath: (path: string, value: unknown) => void
+  /** Chỉ để XEM TRƯỚC trong iframe: thay bản đang hiển thị bằng nội dung nháp — TRONG BỘ NHỚ, không lưu. */
+  setPreview: (c: SiteContent) => void
   /** Đổi BỐ CỤC (thứ tự & ẩn/hiện các phần) → áp dụng NGAY lên website, không tạo trạng thái chưa lưu. */
   setLayout: (updater: (c: SiteContent) => void) => void
   save: () => void
@@ -304,6 +316,7 @@ function mergeC(p: any): SiteContent {
     seo: { ...DEFAULT_CONTENT.seo, ...((p && p.seo) ?? {}) },
     info: { ...DEFAULT_CONTENT.info, ...((p && p.info) ?? {}) },
     booking: { ...DEFAULT_CONTENT.booking, ...((p && p.booking) ?? {}) },
+    cta: { ...DEFAULT_CONTENT.cta, ...((p && p.cta) ?? {}) },
     sections: cleanSections(p),
   }
 }
@@ -338,6 +351,13 @@ export const useContent = create<ContentState>()(
           updater(next)
           return { content: next, dirty: true }
         }),
+      setPath: (path, value) =>
+        set((state) => {
+          const next = structuredClone(state.content)
+          setByPath(next, path, value)
+          return { content: next, dirty: true }
+        }),
+      setPreview: (c) => set({ published: c }),
       setLayout: (updater) =>
         set((s) => {
           const content = structuredClone(s.content)

@@ -52,7 +52,9 @@
       "Bash(find supabase *)",
       "Bash(ls -la supabase/)",
       "Bash(grep -rn \"verify_jwt\" supabase/)",
-      "Bash(npx supabase *)"
+      "Bash(npx supabase *)",
+      "Bash(curl -s \"http://localhost:3003/src/site/edit.tsx\")",
+      "Bash(pkill -f \"vite\")"
     ]
   }
 }

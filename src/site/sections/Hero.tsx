@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Combobox } from '@/components/ui/combobox'
 import { DatePicker } from '@/components/ui/date-picker'
 import { formatVnPhone, phoneDigits } from '@/lib/format'
+import { Editable, EditableImage } from '../edit'
 
 function imageRadius(shape: ImageShape): string {
   switch (shape) {
@@ -67,12 +68,12 @@ function DoctorImage({ max = 'max-w-[380px]' }: { max?: string }) {
         style={{ borderRadius: isCircle ? '999px' : imageRadius(tpl.image), background: 'linear-gradient(160deg,var(--tl-primary),var(--tl-deep))' }} />
       <div className="absolute -right-3 -top-3 size-16 rounded-full opacity-90 -z-0" style={{ background: 'var(--tl-accent)', filter: 'blur(2px)' }} />
       <div className="relative z-[1] overflow-hidden" style={{ borderRadius: imageRadius(tpl.image), filter: 'drop-shadow(0 24px 40px rgba(8,40,72,.28))' }}>
-        <img src={hero.doctorPhotoUrl} alt="Bác sĩ" className="w-full object-cover" style={{ aspectRatio: isCircle ? '1/1' : '83/100', objectPosition: 'top center' }} />
+        <EditableImage path="hero.doctorPhotoUrl" src={hero.doctorPhotoUrl} alt="Bác sĩ" className="w-full object-cover" style={{ aspectRatio: isCircle ? '1/1' : '83/100', objectPosition: 'top center' }} />
       </div>
       {s0 && (
         <div className="absolute z-[2] left-[-14px] bottom-8 bg-white rounded-2xl shadow-xl border px-4 py-3 flex items-center gap-3" style={{ borderColor: 'var(--tl-line)' }}>
           <span className="grid place-items-center size-10 rounded-xl shrink-0" style={{ background: 'var(--tl-soft)', color: 'var(--tl-primary)' }}><Icon name={s0.icon} className="size-5" /></span>
-          <div><b className="block site-head font-bold text-[1.2rem] leading-none" style={{ color: 'var(--tl-primary)' }}>{s0.value}</b><span className="text-[.72rem]" style={{ color: 'var(--tl-slate)' }}>{s0.label}</span></div>
+          <div><Editable as="b" path={`stats.${s0.id}.value`} className="block site-head font-bold text-[1.2rem] leading-none" style={{ color: 'var(--tl-primary)' }}>{s0.value}</Editable><Editable as="span" path={`stats.${s0.id}.label`} className="text-[.72rem]" style={{ color: 'var(--tl-slate)' }}>{s0.label}</Editable></div>
         </div>
       )}
     </figure>
@@ -87,17 +88,20 @@ function HeroText({ center }: { center?: boolean }) {
     <div className={center ? 'text-center max-w-2xl mx-auto' : ''}>
       <span className={`inline-flex items-center gap-2 bg-white border rounded-full pl-2 pr-4 py-1.5 text-[.65rem] lg:text-[.82rem] font-semibold shadow-sm mb-5`} style={{ borderColor: 'var(--tl-line)', color: 'var(--tl-slate)' }}>
         <span className="size-2 rounded-full animate-pulse" style={{ background: 'var(--tl-accent)' }} />
-        {hero.badgePrefix} <b style={{ color: 'var(--tl-navy)' }}>{hero.badgeStrong}</b> {hero.badgeSuffix}
+        <Editable path="hero.badgePrefix">{hero.badgePrefix}</Editable>{' '}
+        <Editable as="b" path="hero.badgeStrong" style={{ color: 'var(--tl-navy)' }}>{hero.badgeStrong}</Editable>{' '}
+        <Editable path="hero.badgeSuffix">{hero.badgeSuffix}</Editable>
       </span>
       <h1 className="site-head font-bold leading-[1.16] text-[clamp(2.1rem,4.6vw,3.2rem)]" style={{ color: 'var(--tl-ink)' }}>
-        {hero.title} <span style={{ color: 'var(--tl-accent)' }}>{hero.titleHighlight}</span>
+        <Editable path="hero.title">{hero.title}</Editable>{' '}
+        <Editable path="hero.titleHighlight" style={{ color: 'var(--tl-accent)' }}>{hero.titleHighlight}</Editable>
       </h1>
-      <p className={`mt-4 text-[1.1rem] ${center ? 'mx-auto' : ''} max-w-[46ch]`} style={{ color: 'var(--tl-slate)' }}>{hero.subtitle}</p>
+      <Editable as="p" path="hero.subtitle" multiline className={`mt-4 text-[1.1rem] ${center ? 'mx-auto' : ''} max-w-[46ch]`} style={{ color: 'var(--tl-slate)' }}>{hero.subtitle}</Editable>
       <ul className={`mt-6 grid gap-3 ${center ? 'max-w-lg mx-auto text-left' : ''}`}>
         {hero.bullets.map((b, i) => (
           <li key={i} className="flex items-start gap-3">
             <span className="grid place-items-center size-[28px] rounded-full shrink-0 mt-0.5" style={sk.icon(i)}><Check className="size-[16px]" strokeWidth={3} /></span>
-            <span style={{ color: 'var(--tl-ink)' }}>{b}</span>
+            <Editable as="span" path={`hero.bullets.${i}`} style={{ color: 'var(--tl-ink)' }}>{b}</Editable>
           </li>
         ))}
       </ul>
@@ -119,7 +123,7 @@ function StatsInline() {
       {stats.map((s, i) => (
         <div key={s.id} className="flex items-center gap-3">
           <span className={`grid place-items-center size-11 ${sk.iconShape} shrink-0`} style={sk.icon(i)}><Icon name={s.icon} className="size-6" /></span>
-          <div><b className="block site-head font-bold text-[1.3rem] leading-none" style={{ color: 'var(--tl-primary)' }}>{s.value}</b><span className="text-[.82rem]" style={{ color: 'var(--tl-slate)' }}>{s.label}</span></div>
+          <div><Editable as="b" path={`stats.${s.id}.value`} className="block site-head font-bold text-[1.3rem] leading-none" style={{ color: 'var(--tl-primary)' }}>{s.value}</Editable><Editable as="span" path={`stats.${s.id}.label`} className="text-[.82rem]" style={{ color: 'var(--tl-slate)' }}>{s.label}</Editable></div>
         </div>
       ))}
     </div>
@@ -165,7 +169,7 @@ export function BookingForm() {
     <div className="bg-white border overflow-hidden shadow-sm w-full" style={{ borderColor: 'var(--tl-line)', borderRadius: 'calc(var(--tl-radius) + 6px)' }}>
       <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b" style={{ borderColor: 'var(--tl-line)' }}>
         <span className="grid place-items-center size-11 rounded-xl shrink-0" style={{ background: 'var(--tl-soft)', color: 'var(--tl-primary)' }}><CalendarCheck className="size-[22px]" /></span>
-        <div><h3 className="site-head font-bold text-[1.2rem]" style={{ color: 'var(--tl-ink)' }}>{hero.bookingTitle}</h3><p className="text-[.85rem]" style={{ color: 'var(--tl-slate)' }}>{hero.bookingSubtitle}</p></div>
+        <div><Editable as="h3" path="hero.bookingTitle" className="site-head font-bold text-[1.2rem]" style={{ color: 'var(--tl-ink)' }}>{hero.bookingTitle}</Editable><Editable as="p" path="hero.bookingSubtitle" className="text-[.85rem]" style={{ color: 'var(--tl-slate)' }}>{hero.bookingSubtitle}</Editable></div>
       </div>
       <form className="p-6 space-y-4" onSubmit={submit}>
         <div className="grid sm:grid-cols-2 gap-3">
@@ -216,8 +220,8 @@ export function BookingBand() {
     <section id="dat-lich-band" className="py-12 lg:py-16" style={{ background: 'var(--tl-tint)' }}>
       <div className="container grid lg:grid-cols-[1fr_.85fr] gap-8 items-center">
         <div>
-          <h2 className="site-head font-bold text-[clamp(1.6rem,3.4vw,2.3rem)]" style={{ color: 'var(--tl-ink)' }}>{hero.bookingTitle} <span style={{ color: 'var(--tl-accent)' }}>ngay hôm nay</span></h2>
-          <p className="mt-3 text-[1.05rem] max-w-[48ch]" style={{ color: 'var(--tl-slate)' }}>{hero.bookingSubtitle}. Điền thông tin để bác sĩ liên hệ xác nhận lịch hẹn phù hợp nhất với bạn.</p>
+          <h2 className="site-head font-bold text-[clamp(1.6rem,3.4vw,2.3rem)]" style={{ color: 'var(--tl-ink)' }}><Editable path="hero.bookingTitle">{hero.bookingTitle}</Editable> <span style={{ color: 'var(--tl-accent)' }}>ngay hôm nay</span></h2>
+          <p className="mt-3 text-[1.05rem] max-w-[48ch]" style={{ color: 'var(--tl-slate)' }}><Editable path="hero.bookingSubtitle">{hero.bookingSubtitle}</Editable>. Điền thông tin để bác sĩ liên hệ xác nhận lịch hẹn phù hợp nhất với bạn.</p>
         </div>
         <div className="max-w-[460px] w-full justify-self-center lg:justify-self-end"><BookingForm /></div>
       </div>

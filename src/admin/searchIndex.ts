@@ -7,6 +7,8 @@ export const SEARCH_INDEX: SearchItem[] = [
   { label: 'Huy hiệu & tiêu đề', page: 'Trang chủ', to: '/admin/hero', keywords: 'badge tieu de title mo ta subtitle' },
   { label: 'Điểm nổi bật (dấu tích)', page: 'Trang chủ', to: '/admin/hero', keywords: 'bullet diem noi bat' },
   { label: 'Form đặt lịch & ảnh bác sĩ', page: 'Trang chủ', to: '/admin/hero', keywords: 'form dang ky anh bac si doctor' },
+  // Dải số liệu
+  { label: 'Dải số liệu (con số nổi bật)', page: 'Dải số liệu', to: '/admin/stats', keywords: 'dai so lieu con so noi bat stats nam kinh nghiem chung chi' },
   // Giới thiệu bác sĩ
   { label: 'Tiêu đề & ảnh bác sĩ', page: 'Giới thiệu bác sĩ', to: '/admin/about', keywords: 'tieu de title anh photo ten vai tro' },
   { label: 'Đoạn giới thiệu (văn bản)', page: 'Giới thiệu bác sĩ', to: '/admin/about', keywords: 'paragraph van ban noi dung' },
@@ -30,10 +32,11 @@ export const SEARCH_INDEX: SearchItem[] = [
   { label: 'Logo phòng khám', page: 'Cài đặt chung', to: '/admin/settings', keywords: 'logo hinh anh thuong hieu' },
   { label: 'Màu sắc (chính · phụ · đỏ)', page: 'Cài đặt chung', to: '/admin/settings', keywords: 'mau sac color chinh phu do primary accent bo mau' },
   { label: 'Phông chữ (font)', page: 'Cài đặt chung', to: '/admin/settings', keywords: 'phong chu font tieu de noi dung chu' },
+  { label: 'Dải kêu gọi cuối trang (CTA)', page: 'Cài đặt chung', to: '/admin/settings', keywords: 'cta keu goi call to action cham soc trai tim tieu de mo ta cuoi trang' },
   { label: 'Chân trang (footer)', page: 'Cài đặt chung', to: '/admin/settings', keywords: 'footer chan trang mo ta' },
   // Giao diện mẫu / Bố cục
   { label: 'Kho giao diện mẫu', page: 'Giao diện mẫu', to: '/admin/themes', keywords: 'mau template giao dien theme phoi mau' },
-  { label: 'Sắp xếp & ẩn/hiện khu vực', page: 'Bố cục & Xem trước', to: '/admin/layout', keywords: 'bo cuc sap xep an hien layout keo tha xem truoc' },
+  { label: 'Tùy chỉnh giao diện (bố cục & sửa trực quan)', page: 'Tùy chỉnh giao diện', to: '/admin/customize', keywords: 'tuy chinh giao dien bo cuc sap xep an hien layout keo tha xem truoc sua truc quan editor customize' },
   // Đặt lịch
   { label: 'Danh sách đặt lịch', page: 'Đặt lịch', to: '/admin/bookings', keywords: 'dat lich booking benh nhan lich hen' },
   // Sao lưu & Email

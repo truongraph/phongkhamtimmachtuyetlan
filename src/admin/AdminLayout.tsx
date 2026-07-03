@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover } from '@/components/ui/popover'
 import {
-  LayoutDashboard, Blocks, Home, User, Stethoscope, ShieldCheck, HeartPulse,
+  LayoutDashboard, Blocks, Home, BarChart3, User, Stethoscope, ShieldCheck, HeartPulse,
   GraduationCap, MapPin, Settings, KeyRound, LogOut, ExternalLink, Menu, X, CalendarClock, Palette,
   BookOpen, Search, ChevronDown, UserRound, PanelLeft, DatabaseBackup, Check, Undo2, Wrench, Bell, Sparkles,
 } from 'lucide-react'
@@ -33,8 +33,9 @@ const NAV = [
   { to: '/admin', end: true, icon: LayoutDashboard, label: 'Tổng quan' },
   { to: '/admin/bookings', icon: CalendarClock, label: 'Đặt lịch', badge: true },
   { section: 'Nội dung' },
-  { to: '/admin/layout', icon: Blocks, label: 'Bố cục & Xem trước' },
+  { to: '/admin/customize', icon: Blocks, label: 'Tùy chỉnh giao diện' },
   { to: '/admin/hero', icon: Home, label: 'Trang chủ' },
+  { to: '/admin/stats', icon: BarChart3, label: 'Dải số liệu' },
   { to: '/admin/about', icon: User, label: 'Giới thiệu bác sĩ' },
   { to: '/admin/services', icon: Stethoscope, label: 'Dịch vụ' },
   { to: '/admin/why', icon: ShieldCheck, label: 'Cam kết' },

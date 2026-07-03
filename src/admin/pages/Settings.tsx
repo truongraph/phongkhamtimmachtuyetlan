@@ -8,7 +8,7 @@ import { PageHead, Field, Area, ImageUpload, PhoneField, SideTabs, SortableList,
 import { AddressPicker } from '../AddressPicker'
 import { provinceName } from '@/lib/vn-address'
 import { FONTS, FONT_NAMES, fontStack, fontCategory, googleFontsHref } from '@/lib/fonts'
-import { Plus, Building2, MapPin, Globe, Clock, Image as ImageIcon, Palette, AlignLeft } from 'lucide-react'
+import { Plus, Building2, MapPin, Globe, Clock, Image as ImageIcon, Palette, AlignLeft, Megaphone } from 'lucide-react'
 
 function FontField({ label, value, onChange, sample }: { label: string; value: string; onChange: (v: string) => void; sample: string }) {
   return (
@@ -159,6 +159,21 @@ export function Settings() {
                   <span className="size-8 rounded-md" style={{ background: c.theme.accent }} />
                   <span className="text-sm text-muted-foreground">Xem trước bảng màu — bấm “Xem website” để thấy toàn bộ.</span>
                 </div>
+              </CardContent>
+            </Card>
+          ),
+        },
+        {
+          key: 'cta', label: 'Dải kêu gọi', icon: <Megaphone />, content: (
+            <Card>
+              <CardHeader><CardTitle>Dải kêu gọi cuối trang</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Khối nằm ngay trước chân trang, kèm nút “Gọi” và “Đặt lịch khám”.</p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Tiêu đề" value={c.cta.title} onChange={(v) => set((d) => { d.cta.title = v })} />
+                  <Field label="Từ nhấn (màu đỏ)" value={c.cta.titleHighlight} onChange={(v) => set((d) => { d.cta.titleHighlight = v })} />
+                </div>
+                <Area label="Mô tả" rows={2} value={c.cta.lead} onChange={(v) => set((d) => { d.cta.lead = v })} />
               </CardContent>
             </Card>
           ),

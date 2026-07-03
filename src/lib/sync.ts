@@ -1,5 +1,6 @@
 import { useContent, DEFAULT_CONTENT, type SiteContent } from '@/store/content'
 import { isBackend, fetchContent, pushContent, subscribeContent, resolveActiveCompany } from '@/lib/backend'
+import { isEditMode } from '@/lib/editMode'
 
 function mergeDefault(remote: Partial<SiteContent>): SiteContent {
   return {
@@ -8,6 +9,7 @@ function mergeDefault(remote: Partial<SiteContent>): SiteContent {
     seo: { ...DEFAULT_CONTENT.seo, ...(remote.seo ?? {}) },
     info: { ...DEFAULT_CONTENT.info, ...(remote.info ?? {}) },
     booking: { ...DEFAULT_CONTENT.booking, ...(remote.booking ?? {}) },
+    cta: { ...DEFAULT_CONTENT.cta, ...(remote.cta ?? {}) },
   }
 }
 
@@ -18,6 +20,9 @@ let prevPub: SiteContent | null = null
 const epoch = (ts: string) => (ts ? new Date(ts).getTime() : 0)
 
 export async function initContentSync() {
+  // Iframe "Sửa trực quan" chỉ xem trước nội dung nháp (nhận qua postMessage) — KHÔNG đồng bộ
+  // server, tránh việc fetch/realtime ghi đè lên bản nháp đang xem.
+  if (isEditMode()) return
   if (!isBackend || started) return
   const cid = await resolveActiveCompany()
   if (!cid) return // chưa xác định được công ty (chưa đăng nhập & chưa cấu hình VITE_SITE_SLUG)

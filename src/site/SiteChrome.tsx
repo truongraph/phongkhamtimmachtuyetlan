@@ -4,6 +4,7 @@ import { useTemplate } from './templates'
 import { Icon } from '@/lib/icons'
 import { Phone, User, Activity, HeartPulse, MapPin, ChevronUp } from 'lucide-react'
 import { openBooking } from './sections/Hero'
+import { Editable, EditableImage } from './edit'
 
 // spy = id khu vực dùng để tô sáng mục menu (Trang chủ link về #top nhưng sáng theo khu vực hero).
 const NAV: { id: string; label: string; spy?: string }[] = [
@@ -33,7 +34,7 @@ function Logo() {
   const info = useContent((s) => s.published.info)
   return (
     <a href="#top" aria-label={info.clinicName} className="flex items-center">
-      <img src={info.logoUrl} alt={info.clinicName} className="h-14 md:h-16 w-auto max-w-[240px] object-contain" />
+      <EditableImage path="info.logoUrl" src={info.logoUrl} alt={info.clinicName} className="h-14 md:h-16 w-auto max-w-[240px] object-contain" />
     </a>
   )
 }
@@ -99,13 +100,13 @@ export function SiteHeader({ tel }: { tel: string }) {
           <div className="container flex items-center justify-between">
             <span className="inline-flex items-center gap-2">
               <Icon name="clock" className="size-[15px]" style={{ color: 'var(--tl-soft)' }} />
-              {info.hours[0] && <>Thứ 2 – Thứ 7: <b className="text-white font-semibold">{info.hours[0].value}</b></>}
-              {info.hours[1] && <> · CN: <b className="text-white font-semibold">{info.hours[1].value}</b></>}
+              {info.hours[0] && <>Thứ 2 – Thứ 7: <Editable as="b" path={`info.hours.${info.hours[0].id}.value`} className="text-white font-semibold">{info.hours[0].value}</Editable></>}
+              {info.hours[1] && <> · CN: <Editable as="b" path={`info.hours.${info.hours[1].id}.value`} className="text-white font-semibold">{info.hours[1].value}</Editable></>}
             </span>
             <div className="flex items-center gap-6">
-              <span className="inline-flex items-center gap-2"><MapPin className="size-[15px]" style={{ color: 'var(--tl-soft)' }} /> {info.address}</span>
+              <span className="inline-flex items-center gap-2"><MapPin className="size-[15px]" style={{ color: 'var(--tl-soft)' }} /> <Editable as="span" path="info.address">{info.address}</Editable></span>
               <a href={`tel:${tel}`} className="inline-flex items-center gap-2 hover:text-white">
-                <Phone className="size-[15px]" style={{ color: 'var(--tl-soft)' }} /> Hotline: <b className="text-white font-semibold">{info.phone}</b>
+                <Phone className="size-[15px]" style={{ color: 'var(--tl-soft)' }} /> Hotline: <Editable as="b" path="info.phone" className="text-white font-semibold">{info.phone}</Editable>
               </a>
             </div>
           </div>
@@ -172,11 +173,11 @@ export function SiteFooter() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr] pb-8 border-b border-white/10">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src={info.logoUrl} className="size-12 rounded-[11px] bg-white p-1 object-contain" alt="Logo" />
-              <span><b className="block site-head font-bold text-white text-[1.1rem]">{info.clinicName}</b>
-                <span className="text-[.66rem] tracking-[.12em] uppercase font-bold" style={{ color: 'var(--tl-accent)' }}>{info.tagline}</span></span>
+              <EditableImage path="info.logoUrl" src={info.logoUrl} className="size-12 rounded-[11px] bg-white p-1 object-contain" alt="Logo" />
+              <span><Editable as="b" path="info.clinicName" className="block site-head font-bold text-white text-[1.1rem]">{info.clinicName}</Editable>
+                <Editable as="span" path="info.tagline" className="text-[.66rem] tracking-[.12em] uppercase font-bold" style={{ color: 'var(--tl-accent)' }}>{info.tagline}</Editable></span>
             </div>
-            <p className="max-w-[40ch] text-white/55">{footerAbout}</p>
+            <Editable as="p" path="footerAbout" multiline className="max-w-[40ch] text-white/55">{footerAbout}</Editable>
           </div>
           <div>
             <h4 className="text-white text-[.8rem] tracking-[.1em] uppercase mb-4 font-bold font-sans">Liên kết</h4>
@@ -187,15 +188,15 @@ export function SiteFooter() {
           <div>
             <h4 className="text-white text-[.8rem] tracking-[.1em] uppercase mb-4 font-bold font-sans">Liên hệ</h4>
             <ul className="grid gap-2.5">
-              <li className="flex gap-2"><Phone className="size-4 mt-1 shrink-0 text-white/40" /><a href={`tel:${info.phone.replace(/\s/g, '')}`} className="hover:text-white">{info.phone}</a></li>
-              <li className="flex gap-2"><MapPin className="size-4 mt-1 shrink-0 text-white/40" /><span>{info.address} {info.addressNote}</span></li>
+              <li className="flex gap-2"><Phone className="size-4 mt-1 shrink-0 text-white/40" /><a href={`tel:${info.phone.replace(/\s/g, '')}`} className="hover:text-white"><Editable path="info.phone">{info.phone}</Editable></a></li>
+              <li className="flex gap-2"><MapPin className="size-4 mt-1 shrink-0 text-white/40" /><span><Editable path="info.address">{info.address}</Editable> <Editable path="info.addressNote">{info.addressNote}</Editable></span></li>
               <li className="flex gap-2"><Icon name="clock" className="size-4 mt-1 shrink-0 text-white/40" /><span>{info.hours.map((h) => `${h.label}: ${h.value}`).join(' · ')}</span></li>
             </ul>
           </div>
         </div>
         <div className="pt-5 flex justify-between gap-3 flex-wrap text-[.85rem] text-white/50">
           <span>© {new Date().getFullYear()} Phòng khám {info.clinicName}.</span>
-          <span>{info.slogan}</span>
+          <Editable as="span" path="info.slogan">{info.slogan}</Editable>
         </div>
       </div>
     </footer>
