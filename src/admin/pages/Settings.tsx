@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Slider } from '@/components/ui/slider'
 import { Combobox } from '@/components/ui/combobox'
 import { PageHead, Field, Area, ImageUpload, PhoneField, SideTabs, SortableList, DeleteBtn } from '../parts'
 import { AddressPicker } from '../AddressPicker'
@@ -151,7 +152,7 @@ export function Settings() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Bo góc ({c.theme.radius}px)</Label>
-                  <input type="range" min={0} max={24} value={c.theme.radius} onChange={(e) => set((d) => { d.theme.radius = Number(e.target.value) })} className="w-full mt-3 accent-primary" />
+                  <Slider min={0} max={24} value={[c.theme.radius]} onValueChange={([v]) => set((d) => { d.theme.radius = v })} className="w-full mt-3" />
                 </div>
                 <div className="rounded-lg border p-4 flex items-center gap-3 flex-wrap" style={{ background: c.theme.primary + '10' }}>
                   <span className="size-8 rounded-md" style={{ background: c.theme.primary }} />

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useContent } from '@/store/content'
 import { Icon } from '@/lib/icons'
-import { Clock, Phone, MapPin, ChevronDown } from 'lucide-react'
-import { useTemplate, useSkin } from '../templates'
+import { Clock, Phone, MapPin, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useTemplate, useSkin, useVariant } from '../templates'
 import { Editable, EditableImage } from '../edit'
 import { isEditMode } from '@/lib/editMode'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
 /* Bảng màu icon xoay vòng — vẫn export để nơi khác (hero, thumbnail) dùng khi cần. */
 export const CHIP: readonly [string, string][] = [
@@ -62,8 +63,9 @@ export function Stats() {
   const stats = useContent((s) => s.published.stats)
   const tpl = useTemplate()
   const sk = useSkin()
+  const v = useVariant('stats', tpl.stats)
 
-  if (tpl.stats === 'cards') {
+  if (v === 'cards') {
     return (
       <section className="py-10" style={{ background: sk.bgTint }}>
         <div className="container grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -78,7 +80,7 @@ export function Stats() {
     )
   }
 
-  if (tpl.stats === 'inline') {
+  if (v === 'inline') {
     return (
       <section className="py-10 border-y" style={{ borderColor: 'var(--tl-line)' }}>
         <div className="container grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -115,8 +117,9 @@ export function Why() {
   const { whys, whyEyebrow, whyTitle, whyTitleHighlight } = useContent((s) => s.published)
   const tpl = useTemplate()
   const sk = useSkin()
+  const v = useVariant('why', tpl.why)
 
-  if (tpl.why === 'bordered') {
+  if (v === 'bordered') {
     return (
       <section className="py-14 lg:py-24">
         <div className="container grid lg:grid-cols-[.72fr_1.28fr] gap-10 items-start">
@@ -135,7 +138,7 @@ export function Why() {
     )
   }
 
-  const center = tpl.why === 'iconTop'
+  const center = v === 'iconTop'
   return (
     <section className="py-14 lg:py-24">
       <div className="container">
@@ -159,6 +162,7 @@ export function Services() {
   const { services, servicesEyebrow, servicesTitle, servicesTitleHighlight, servicesLead } = useContent((s) => s.published)
   const tpl = useTemplate()
   const sk = useSkin()
+  const v = useVariant('services', tpl.services)
   const head = (
     <div className="max-w-[640px] mb-11">
       <Eyebrow path="servicesEyebrow">{servicesEyebrow}</Eyebrow>
@@ -168,7 +172,7 @@ export function Services() {
   )
 
   let body: React.ReactNode
-  if (tpl.services === 'list') {
+  if (v === 'list') {
     body = (
       <div className="grid md:grid-cols-2 gap-4">
         {services.map((sv, i) => (
@@ -179,7 +183,7 @@ export function Services() {
         ))}
       </div>
     )
-  } else if (tpl.services === 'alt') {
+  } else if (v === 'alt') {
     body = (
       <div className="space-y-4 max-w-4xl">
         {services.map((sv, i) => (
@@ -191,7 +195,7 @@ export function Services() {
         ))}
       </div>
     )
-  } else if (tpl.services === 'grid4') {
+  } else if (v === 'grid4') {
     body = (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {services.map((sv, i) => (
@@ -228,6 +232,7 @@ export function About() {
   const a = useContent((s) => s.published.about)
   const tpl = useTemplate()
   const sk = useSkin()
+  const v = useVariant('about', tpl.about)
 
   const Photo = (
     <div className="lg:sticky lg:top-24 max-w-[400px] w-full justify-self-center">
@@ -254,7 +259,7 @@ export function About() {
     </div>
   )
 
-  if (tpl.about === 'quote') {
+  if (v === 'quote') {
     return (
       <section id="gioi-thieu" className="py-14 lg:py-24" style={{ background: sk.bgTint }}>
         <div className="container max-w-4xl text-center">
@@ -286,7 +291,7 @@ export function About() {
     </div>
   )
 
-  const reverse = tpl.about === 'imageRight'
+  const reverse = v === 'imageRight'
   return (
     <section id="gioi-thieu" className="py-14 lg:py-24">
       <div className={`container grid gap-9 items-start ${reverse ? 'lg:grid-cols-[1.18fr_.82fr]' : 'lg:grid-cols-[.82fr_1.18fr]'}`}>
@@ -301,10 +306,11 @@ export function Specialties() {
   const { specialties, specialtiesEyebrow, specialtiesTitle, specialtiesTitleHighlight } = useContent((s) => s.published)
   const tpl = useTemplate()
   const sk = useSkin()
+  const v = useVariant('specialties', tpl.specialties)
   const head = <div className="max-w-[640px] mx-auto text-center mb-11 flex flex-col items-center"><Eyebrow center path="specialtiesEyebrow">{specialtiesEyebrow}</Eyebrow><Title text={specialtiesTitle} hi={specialtiesTitleHighlight} path="specialtiesTitle" hiPath="specialtiesTitleHighlight" /></div>
 
   let body: React.ReactNode
-  if (tpl.specialties === 'list') {
+  if (v === 'list') {
     body = (
       <div className="flex flex-wrap justify-center gap-3">
         {specialties.map((sp, i) => (
@@ -315,7 +321,7 @@ export function Specialties() {
         ))}
       </div>
     )
-  } else if (tpl.specialties === 'squares') {
+  } else if (v === 'squares') {
     body = (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {specialties.map((sp, i) => (
@@ -536,16 +542,30 @@ export function Pricing() {
 /* ============ GALLERY (Thư viện ảnh) ============ */
 export function Gallery() {
   const { gallery, galleryEyebrow, galleryTitle, galleryTitleHighlight } = useContent((s) => s.published)
+  const editing = isEditMode()
+  // Lightbox: ở chế độ XEM, bấm ảnh để phóng to; ở chế độ SỬA, giữ hành vi đổi ảnh (EditableImage).
+  const [open, setOpen] = useState(false)
+  const [idx, setIdx] = useState(0)
+  const openAt = (i: number) => { setIdx(i); setOpen(true) }
+  const go = (d: number) => setIdx((i) => (i + d + gallery.length) % gallery.length)
+  const cur = gallery[idx]
+  const many = gallery.length > 1
+
   return (
     <section id="thu-vien" className="py-14 lg:py-24">
       <div className="container">
         <div className="max-w-[640px] mx-auto text-center mb-11 flex flex-col items-center"><Eyebrow center path="galleryEyebrow">{galleryEyebrow}</Eyebrow><Title text={galleryTitle} hi={galleryTitleHighlight} path="galleryTitle" hiPath="galleryTitleHighlight" /></div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {gallery.map((g) => (
-            <figure key={g.id} className="relative rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--tl-line)' }}>
-              <EditableImage path={`gallery.${g.id}.url`} src={g.url} alt={g.caption} className="w-full object-cover aspect-[4/3]" />
+          {gallery.map((g, i) => (
+            <figure key={g.id} className="group relative rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--tl-line)' }}>
+              <EditableImage path={`gallery.${g.id}.url`} src={g.url} alt={g.caption} className="w-full object-cover aspect-[4/3] transition-transform duration-300 group-hover:scale-105" />
+              {/* Lớp phủ mở lightbox — chỉ ở chế độ xem (chế độ sửa dành click cho việc đổi ảnh) */}
+              {!editing && (
+                <button type="button" onClick={() => openAt(i)} aria-label={`Xem ảnh lớn${g.caption ? `: ${g.caption}` : ''}`}
+                  className="absolute inset-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70" />
+              )}
               {g.caption && (
-                <figcaption className="absolute inset-x-0 bottom-0 px-3.5 py-2.5 text-white text-[.86rem] font-medium" style={{ background: 'linear-gradient(0deg,rgba(6,20,40,.72),transparent)' }}>
+                <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 px-3.5 py-2.5 text-white text-[.86rem] font-medium" style={{ background: 'linear-gradient(0deg,rgba(6,20,40,.72),transparent)' }}>
                   <Editable as="span" path={`gallery.${g.id}.caption`}>{g.caption}</Editable>
                 </figcaption>
               )}
@@ -553,6 +573,43 @@ export function Gallery() {
           ))}
         </div>
       </div>
+
+      {/* Lightbox: xem ảnh cỡ lớn, chuyển trái/phải, phím ← → và Esc */}
+      {!editing && (
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent hideClose
+            onKeyDown={(e) => { if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft') go(-1) }}
+            className="max-w-[95vw] md:max-w-5xl border-0 bg-transparent p-0 shadow-none data-[state=open]:zoom-in-95 sm:rounded-none">
+            <DialogTitle className="sr-only">{cur?.caption || 'Ảnh phòng khám'}</DialogTitle>
+            <div className="flex flex-col items-center">
+              {/* Khung ảnh (arrows căn giữa theo chính ảnh) */}
+              <div className="relative inline-flex">
+                {cur && (
+                  <img src={cur.url} alt={cur.caption || ''} className="max-h-[82vh] w-auto max-w-full rounded-xl object-contain shadow-2xl" />
+                )}
+                {/* Đóng */}
+                <button type="button" onClick={() => setOpen(false)} aria-label="Đóng"
+                  className="absolute right-2 top-2 grid size-10 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 md:-right-12 md:top-0"><X className="size-5" /></button>
+                {/* Trái / phải */}
+                {many && (
+                  <>
+                    <button type="button" onClick={() => go(-1)} aria-label="Ảnh trước"
+                      className="absolute left-2 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 md:-left-14"><ChevronLeft className="size-6" /></button>
+                    <button type="button" onClick={() => go(1)} aria-label="Ảnh sau"
+                      className="absolute right-2 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60 md:-right-14"><ChevronRight className="size-6" /></button>
+                  </>
+                )}
+              </div>
+              {cur?.caption && (
+                <figcaption className="mt-3 max-w-2xl text-center text-sm font-medium text-white/90">{cur.caption}</figcaption>
+              )}
+              {many && (
+                <div className="mt-1 text-center text-xs font-medium tracking-wider text-white/55">{idx + 1} / {gallery.length}</div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </section>
   )
 }

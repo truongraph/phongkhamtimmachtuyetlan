@@ -1,7 +1,9 @@
 import { useRef, useState, useLayoutEffect, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useContent, type SiteContent, type SectionType } from '@/store/content'
+import { useContent, newRow, type SiteContent, type SectionType, type RowBlock } from '@/store/content'
+import { RowEditorDialog } from '../customize/RowEditor'
 import { Switch } from '@/components/ui/switch'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
 import {
@@ -15,14 +17,26 @@ import {
   X, Home, GripVertical, Eye, EyeOff, Monitor, Tablet, Smartphone, RefreshCw, ExternalLink, Check, Undo2, Loader2,
   Blocks, User, Stethoscope, ShieldCheck, HeartPulse, GraduationCap, MapPin, SlidersHorizontal, BarChart3,
   HelpCircle, MessageSquareQuote, CircleDollarSign, Images,
-  ChevronRight, ChevronLeft, type LucideIcon,
+  ChevronRight, ChevronLeft, Plus, SquarePen, Trash2, Columns3, type LucideIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { TL_READY, TL_CONTENT, TL_SET, TL_FOCUS } from '@/lib/editMode'
 import { pushContent } from '@/lib/backend'
 import { PANEL_SECTIONS, ContactPanel, StatsPanel, type SectionMeta } from '../customize/panels'
 
-interface Sec { type: string; label: string; visible: boolean }
+interface Sec { type: string; label: string; visible: boolean; variant?: string; id?: string; row?: RowBlock }
+// Khóa DnD duy nhất: khối tự do dùng id, phần dựng sẵn dùng type.
+const secKey = (s: Sec) => s.id ?? s.type
+
+// Các KIỂU HIỂN THỊ thay thế cho từng khu vực (khớp biến thể bố cục trong templates.ts).
+// Bỏ trống = "Theo mẫu" (dùng kiểu của mẫu đang chọn).
+const SECTION_VARIANTS: Record<string, { value: string; label: string }[]> = {
+  stats: [{ value: 'band', label: 'Dải màu ngang' }, { value: 'cards', label: 'Thẻ nổi' }, { value: 'inline', label: 'Hàng gọn' }],
+  why: [{ value: 'cards', label: 'Thẻ' }, { value: 'iconTop', label: 'Icon ở giữa' }, { value: 'bordered', label: 'Tiêu đề bên trái' }],
+  services: [{ value: 'cards', label: 'Thẻ' }, { value: 'list', label: 'Danh sách' }, { value: 'alt', label: 'Hàng lớn xen kẽ' }, { value: 'grid4', label: 'Lưới 4 cột' }],
+  specialties: [{ value: 'pills', label: 'Viên bo tròn' }, { value: 'squares', label: 'Ô vuông' }, { value: 'list', label: 'Danh sách' }],
+  about: [{ value: 'imageLeft', label: 'Ảnh bên trái' }, { value: 'imageRight', label: 'Ảnh bên phải' }, { value: 'quote', label: 'Trích dẫn nổi bật' }],
+}
 
 // Máy tính = khung tự co giãn 100%; tablet/điện thoại = khung cố định thu nhỏ vừa.
 const DEVICES = {
@@ -114,22 +128,49 @@ const PANEL_CSS = `
 .tl-cust-panel label{ font-weight:600; }
 `
 
-function SortableRow({ s, onToggle }: { s: Sec; onToggle: () => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: s.type })
+function SortableRow({ s, onToggle, onVariant, onEdit, onDelete }: {
+  s: Sec; onToggle: () => void; onVariant: (v: string) => void; onEdit: () => void; onDelete: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: secKey(s) })
   const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 20 : undefined }
+  const variants = SECTION_VARIANTS[s.type]
+  const isRow = s.type === 'row'
   return (
     <div ref={setNodeRef} style={style}
-      className={`flex items-center gap-2 rounded-lg border bg-card p-2 ${isDragging ? 'shadow-xl ring-2 ring-primary/40' : ''} ${s.visible ? '' : 'opacity-60'}`}>
-      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing touch-none p-1 -m-1 text-muted-foreground hover:text-foreground" aria-label="Kéo để sắp xếp">
-        <GripVertical className="size-[18px]" />
-      </button>
-      <div className="flex-1 min-w-0">
-        <div className="font-medium text-[.85rem] truncate">{s.label}</div>
-        <div className="text-[.68rem] text-muted-foreground flex items-center gap-1">
-          {s.visible ? <><Eye className="size-3" /> Hiển thị</> : <><EyeOff className="size-3" /> Đang ẩn</>}
+      className={`rounded-lg border bg-card ${isRow ? 'border-primary/40' : ''} ${isDragging ? 'shadow-xl ring-2 ring-primary/40' : ''} ${s.visible ? '' : 'opacity-60'}`}>
+      <div className="flex items-center gap-2 p-2">
+        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing touch-none p-1 -m-1 text-muted-foreground hover:text-foreground" aria-label="Kéo để sắp xếp">
+          <GripVertical className="size-[18px]" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-[.85rem] truncate flex items-center gap-1.5">{isRow && <Columns3 className="size-3.5 text-primary shrink-0" />}{s.label}</div>
+          <div className="text-[.68rem] text-muted-foreground flex items-center gap-1">
+            {isRow
+              ? <>{s.row?.cols.length ?? 0} cột · {s.visible ? 'Hiển thị' : 'Đang ẩn'}</>
+              : (s.visible ? <><Eye className="size-3" /> Hiển thị</> : <><EyeOff className="size-3" /> Đang ẩn</>)}
+          </div>
         </div>
+        <Switch checked={s.visible} onCheckedChange={onToggle} />
       </div>
-      <Switch checked={s.visible} onCheckedChange={onToggle} />
+      {/* KHỐI TỰ DO: nút Sửa nội dung + Xóa khối */}
+      {isRow && (
+        <div className="px-2 pb-2 pl-9 flex gap-1.5">
+          <Button variant="outline" size="sm" className="h-8 flex-1 text-[.8rem]" onClick={onEdit}><SquarePen className="size-3.5" /> Sửa nội dung</Button>
+          <Button variant="outline" size="sm" className="h-8 text-[.8rem] text-destructive hover:bg-destructive/10 hover:text-destructive px-2.5" onClick={onDelete}><Trash2 className="size-3.5" /></Button>
+        </div>
+      )}
+      {/* Bộ chọn KIỂU HIỂN THỊ — chỉ hiện với khu vực dựng sẵn có nhiều biến thể & đang bật */}
+      {!isRow && variants && s.visible && (
+        <div className="px-2 pb-2 pl-9">
+          <Select value={s.variant || '__tpl'} onValueChange={(val) => onVariant(val === '__tpl' ? '' : val)}>
+            <SelectTrigger className="h-8 text-[.8rem]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__tpl">Kiểu: Theo mẫu</SelectItem>
+              {variants.map((o) => <SelectItem key={o.value} value={o.value}>Kiểu: {o.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   )
 }
@@ -138,6 +179,7 @@ function SortableRow({ s, onToggle }: { s: Sec; onToggle: () => void }) {
 function LayoutPanel() {
   const sections = useContent((s) => s.content.sections) as Sec[]
   const setLayout = useContent((s) => s.setLayout)
+  const [editRow, setEditRow] = useState<string | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -146,16 +188,31 @@ function LayoutPanel() {
     const { active, over } = e
     if (!over || active.id === over.id) return
     setLayout((c) => {
-      const from = c.sections.findIndex((x) => x.type === active.id)
-      const to = c.sections.findIndex((x) => x.type === over.id)
+      const from = c.sections.findIndex((x) => secKey(x as Sec) === active.id)
+      const to = c.sections.findIndex((x) => secKey(x as Sec) === over.id)
       c.sections = arrayMove(c.sections, from, to)
     })
     toast.success('Đã cập nhật thứ tự các phần')
   }
-  const toggle = (type: string) => {
+  const toggle = (key: string) => {
     let shown = false
-    setLayout((c) => { const it = c.sections.find((x) => x.type === type); if (it) { it.visible = !it.visible; shown = it.visible } })
+    setLayout((c) => { const it = c.sections.find((x) => secKey(x as Sec) === key); if (it) { it.visible = !it.visible; shown = it.visible } })
     toast.success(shown ? 'Đã bật hiển thị phần này' : 'Đã ẩn phần này')
+  }
+  const setVariant = (key: string, variant: string) => {
+    setLayout((c) => { const it = c.sections.find((x) => secKey(x as Sec) === key); if (it) { if (variant) it.variant = variant; else delete it.variant } })
+    toast.success('Đã đổi kiểu hiển thị')
+  }
+  const addRow = () => {
+    const nid = useContent.getState().newId
+    let id = ''
+    setLayout((c) => { const r = newRow(nid); id = r.id!; c.sections.push(r) })
+    setEditRow(id) // mở luôn trình sửa cho khối mới
+    toast.success('Đã thêm khối tự do')
+  }
+  const removeRow = (key: string) => {
+    setLayout((c) => { c.sections = c.sections.filter((x) => secKey(x as Sec) !== key) })
+    toast.success('Đã xóa khối tự do')
   }
   return (
     <div className="space-y-2">
@@ -164,12 +221,26 @@ function LayoutPanel() {
         <div className="flex-1"><div className="font-medium text-[.85rem]">Trang chủ (Hero)</div><div className="text-[.66rem] text-muted-foreground">Cố định · không thể tắt</div></div>
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <SortableContext items={sections.map((s) => s.type)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={sections.map((s) => secKey(s))} strategy={verticalListSortingStrategy}>
           <div className="space-y-1.5">
-            {sections.map((s) => <SortableRow key={s.type} s={s} onToggle={() => toggle(s.type)} />)}
+            {sections.map((s) => (
+              <SortableRow key={secKey(s)} s={s}
+                onToggle={() => toggle(secKey(s))}
+                onVariant={(v) => setVariant(secKey(s), v)}
+                onEdit={() => setEditRow(secKey(s))}
+                onDelete={() => removeRow(secKey(s))} />
+            ))}
           </div>
         </SortableContext>
       </DndContext>
+
+      {/* Thêm khối tự do (dựng cột + ảnh/chữ/nút) */}
+      <button onClick={addRow}
+        className="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary/40 py-2.5 text-[.85rem] font-semibold text-primary hover:bg-primary/5 transition-colors">
+        <Plus className="size-4" /> Thêm khối tự do
+      </button>
+
+      <RowEditorDialog target={editRow ? { scope: 'home', blockId: editRow } : null} onClose={() => setEditRow(null)} />
     </div>
   )
 }

@@ -6,11 +6,114 @@ import { setByPath } from '@/lib/path'
 export type SectionType =
   | 'stats' | 'why' | 'services' | 'about' | 'specialties' | 'journey'
   | 'faq' | 'testimonials' | 'pricing' | 'gallery' | 'contact'
+  | 'row' // khối tự do (chia cột, thả ảnh/chữ/nút) — kiểu UX Builder
+
+/* ---- KHỐI TỰ DO (row builder) ---- */
+export type TypoSize = 'sm' | 'md' | 'lg' | 'xl'
+export type RowElement =
+  | { id: string; kind: 'heading'; text: string; size?: TypoSize; color?: string }
+  | { id: string; kind: 'text'; text: string; size?: TypoSize; color?: string }
+  | { id: string; kind: 'image'; url: string; alt?: string }
+  | { id: string; kind: 'button'; text: string; href: string }
+  | { id: string; kind: 'icon'; name: string }
+  | { id: string; kind: 'video'; url: string }
+  | { id: string; kind: 'spacer'; size?: 'sm' | 'md' | 'lg' }
+  | { id: string; kind: 'divider' }
+  | { id: string; kind: 'map'; address: string }
+  | { id: string; kind: 'list'; items: string[]; icon?: string }
+  | { id: string; kind: 'quote'; text: string; cite?: string }
+  | { id: string; kind: 'gallery'; images: { id: string; url: string }[] }
+  | { id: string; kind: 'html'; html: string }
+  | { id: string; kind: 'latestposts'; count?: number }
+  | { id: string; kind: 'socials'; items: { id: string; platform: string; url: string }[] }
+  | { id: string; kind: 'table'; rows: string[][] }
+  | { id: string; kind: 'columns'; cols: RowColumn[] } // khối LỒNG: chia cột, mỗi cột chứa phần tử con
+export type RowElementKind = RowElement['kind']
+export interface RowColumn { id: string; elements: RowElement[] }
+export interface RowBlock {
+  cols: RowColumn[]
+  /** Nền khối: trắng / tông nhạt / nền màu thương hiệu. */
+  bg?: 'none' | 'tint' | 'soft'
+  /** Khoảng đệm trên–dưới. */
+  py?: 'sm' | 'md' | 'lg'
+  /** Căn dọc các cột. */
+  align?: 'start' | 'center'
+  /** Ảnh nền (URL/dataURL). */
+  bgImage?: string
+  /** Độ tối lớp phủ trên ảnh nền (0–80%). */
+  overlay?: number
+  /** Chữ sáng (dùng khi nền tối/ảnh). */
+  light?: boolean
+  /** Tỉ lệ cột khi có 2 cột. */
+  layout?: 'equal' | 'wideLeft' | 'wideRight'
+  /** Tràn toàn chiều ngang (bỏ giới hạn container). */
+  wide?: boolean
+}
 
 export interface SectionMeta {
   type: SectionType
   label: string
   visible: boolean
+  /** Ghi đè kiểu bố cục cho riêng khu vực này. Bỏ trống = theo mẫu đang dùng. */
+  variant?: string
+  /** ID duy nhất — BẮT BUỘC cho khối tự do (type==='row') vì có thể có nhiều khối. */
+  id?: string
+  /** Dữ liệu khối tự do khi type==='row'. */
+  row?: RowBlock
+}
+
+/* ---- FORM ĐẶT LỊCH tuỳ biến (kiểu Contact Form 7) ---- */
+export type FormFieldType = 'text' | 'phone' | 'email' | 'textarea' | 'select' | 'date' | 'time' | 'checkbox'
+export interface FormField {
+  id: string
+  type: FormFieldType
+  label: string
+  /** Khóa lưu: 'name'|'phone'|'service'|'date'|'time'|'note' map vào cột đặt lịch; khác = field tuỳ chỉnh (gộp vào Ghi chú). */
+  key: string
+  placeholder?: string
+  required?: boolean
+  /** Lựa chọn cho type 'select'/'time'. */
+  options?: string[]
+  /** Bề rộng trong lưới: cả hàng hay nửa hàng. */
+  width?: 'full' | 'half'
+}
+export interface BookingForm { fields: FormField[]; submitText?: string }
+
+/* ---- BÀI VIẾT / TIN TỨC (blog) ---- */
+export interface Post {
+  id: string
+  title: string
+  slug: string
+  /** Tóm tắt ngắn (hiện ở danh sách + chia sẻ). */
+  excerpt: string
+  /** Ảnh bìa (URL/dataURL). */
+  cover: string
+  /** Ngày đăng 'YYYY-MM-DD'. */
+  date: string
+  published: boolean
+  /** Thân bài = các KHỐI TỰ DO (tái dùng row builder). */
+  sections: SectionMeta[]
+}
+
+/* ---- MENU điều hướng tuỳ biến ---- */
+export interface MenuItem {
+  id: string
+  label: string
+  /** home = về đầu trang chủ; section = mỏ neo tới 1 phần; page = tới trang phụ; url = liên kết tự nhập. */
+  kind: 'home' | 'section' | 'page' | 'url'
+  /** section: id mỏ neo (vd 'gioi-thieu'); page: id trang phụ; url: đường dẫn/URL. */
+  ref?: string
+}
+
+/** Trang phụ tự tạo (ngoài Trang chủ). Nội dung = danh sách KHỐI TỰ DO (SectionMeta type='row'). */
+export interface PageDef {
+  id: string
+  title: string
+  /** Đường dẫn: /<slug> */
+  slug: string
+  sections: SectionMeta[]
+  /** SEO riêng cho trang (tiêu đề Google + mô tả chia sẻ). Bỏ trống = tự suy từ tên trang. */
+  seo?: { title?: string; description?: string }
 }
 
 export interface Theme {
@@ -132,7 +235,17 @@ export interface SiteContent {
   cta: { title: string; titleHighlight: string; lead: string }
   footerAbout: string
   booking: { notifyEmail: string; web3formsKey: string }
+  /** Form đặt lịch tuỳ biến (kéo-thả field). */
+  bookingForm: BookingForm
   sections: SectionMeta[]
+  /** Các trang phụ tự tạo (Cấp 4 — đa trang). Mặc định rỗng. */
+  pages: PageDef[]
+  /** Menu tuỳ biến. Rỗng = dùng menu TỰ ĐỘNG (trang chủ + các phần + trang phụ). */
+  menu: MenuItem[]
+  /** Bài viết / tin tức. */
+  posts: Post[]
+  /** Cấu hình trang tin tức (tiêu đề & đường dẫn danh sách). */
+  blog: { title: string; slug: string; intro: string }
 }
 
 /* ============ DEFAULT CONTENT ============ */
@@ -319,6 +432,17 @@ export const DEFAULT_CONTENT: SiteContent = {
   },
   footerAbout: 'Phụ trách bởi ThS. BSCKII. Trần Thị Tuyết Lan — hoạt động liên tục từ 2015 với sứ mệnh chẩn đoán chính xác và điều trị hiệu quả cho mọi người bệnh.',
   booking: { notifyEmail: '', web3formsKey: '' },
+  bookingForm: {
+    submitText: 'Gửi đăng ký khám',
+    fields: [
+      { id: uid(), type: 'text', key: 'name', label: 'Họ và tên', placeholder: 'Nguyễn Văn A', required: true, width: 'half' },
+      { id: uid(), type: 'phone', key: 'phone', label: 'Số điện thoại', placeholder: '090 941 073', required: true, width: 'half' },
+      { id: uid(), type: 'select', key: 'service', label: 'Dịch vụ', placeholder: 'Chọn dịch vụ cần khám', width: 'full', options: [] },
+      { id: uid(), type: 'date', key: 'date', label: 'Ngày mong muốn', placeholder: 'Chọn ngày khám', width: 'half' },
+      { id: uid(), type: 'time', key: 'time', label: 'Buổi khám', placeholder: 'Chọn buổi khám', width: 'half', options: ['Chiều (17:00–20:00)', 'Sáng CN (08:00–11:00)', 'Bác sĩ tư vấn giờ phù hợp'] },
+      { id: uid(), type: 'textarea', key: 'note', label: 'Ghi chú (triệu chứng, mong muốn…)', placeholder: 'VD: hay hồi hộp, khó thở khi gắng sức…', width: 'full' },
+    ],
+  },
   sections: [
     { type: 'stats', label: 'Dải số liệu', visible: true },
     { type: 'why', label: 'Vì sao chọn (Cam kết)', visible: true },
@@ -332,6 +456,10 @@ export const DEFAULT_CONTENT: SiteContent = {
     { type: 'gallery', label: 'Thư viện ảnh', visible: false },
     { type: 'contact', label: 'Liên hệ & bản đồ', visible: true },
   ],
+  pages: [],
+  menu: [],
+  posts: [],
+  blog: { title: 'Tin tức', slug: 'tin-tuc', intro: 'Kiến thức sức khỏe tim mạch & tin tức phòng khám.' },
 }
 
 /* ============ STORE ============ */
@@ -359,15 +487,70 @@ interface ContentState {
   newId: () => string
 }
 
-// Dọn danh sách sections đã lưu: chỉ giữ type hợp lệ (bỏ type cũ/không còn dùng),
-// và đảm bảo đủ các phần mặc định.
+// Dọn danh sách sections đã lưu: giữ type hợp lệ + KHỐI TỰ DO (row, giữ nguyên id/row),
+// bỏ type cũ/không còn dùng, và đảm bảo đủ các phần mặc định.
 function cleanSections(p: any): SectionMeta[] {
   const def = DEFAULT_CONTENT.sections
   const saved: SectionMeta[] = Array.isArray(p?.sections)
-    ? p.sections.filter((s: SectionMeta) => def.some((d) => d.type === s.type))
+    ? p.sections.filter((s: SectionMeta) => s?.type === 'row' || def.some((d) => d.type === s.type))
     : []
-  const have = new Set(saved.map((s) => s.type))
+  const have = new Set(saved.filter((s) => s.type !== 'row').map((s) => s.type))
+  // Chèn các phần MẶC ĐỊNH còn thiếu vào cuối (khối tự do không có mặc định nên luôn được giữ qua `saved`).
   return [...saved, ...def.filter((d) => !have.has(d.type))]
+}
+
+/** Chuẩn hóa tiêu đề → slug (không dấu, gạch nối). */
+export function slugify(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'trang'
+}
+
+/** Tạo một TRANG PHỤ rỗng với thân bài phẳng kiểu Gutenberg. */
+export function newPage(id: () => string, title: string, slug: string): PageDef {
+  return { id: id(), title, slug, sections: [newPostBody(id)] }
+}
+
+/** Thân bài kiểu Gutenberg: MỘT khối 1 cột chứa danh sách phần tử (mỗi phần tử = 1 "block"). */
+export function newPostBody(id: () => string): SectionMeta {
+  return {
+    type: 'row', label: 'Nội dung', visible: true, id: id(),
+    row: { bg: 'none', py: 'sm', align: 'start', cols: [{ id: id(), elements: [{ id: id(), kind: 'text', text: '' }] }] },
+  }
+}
+
+/** Tạo một BÀI VIẾT mới (ngày = hôm nay), thân bài Gutenberg 1 cột. */
+export function newPost(id: () => string, title: string, slug: string): Post {
+  return { id: id(), title, slug, excerpt: '', cover: '', date: new Date().toISOString().slice(0, 10), published: true, sections: [newPostBody(id)] }
+}
+
+/** Tạo một FIELD mới cho form đặt lịch (key ngẫu nhiên = field tuỳ chỉnh, gộp vào Ghi chú). */
+export function newField(id: () => string, type: FormFieldType): FormField {
+  const f: FormField = { id: id(), type, key: id(), label: 'Nhãn mới', width: 'full' }
+  if (type === 'select') { f.label = 'Lựa chọn'; f.options = ['Lựa chọn 1', 'Lựa chọn 2']; f.placeholder = 'Chọn…' }
+  else if (type === 'time') { f.label = 'Buổi'; f.options = ['Sáng', 'Chiều']; f.placeholder = 'Chọn…' }
+  else if (type === 'checkbox') f.label = 'Tôi đồng ý được liên hệ tư vấn'
+  else if (type === 'date') f.label = 'Chọn ngày'
+  else if (type === 'phone') f.label = 'Số điện thoại'
+  else if (type === 'email') f.label = 'Email'
+  else if (type === 'textarea') f.label = 'Nội dung'
+  return f
+}
+
+/** Tạo một KHỐI TỰ DO mặc định: 2 cột — ảnh bên trái, tiêu đề + đoạn chữ bên phải. */
+export function newRow(id: () => string): SectionMeta {
+  return {
+    type: 'row', label: 'Khối tự do', visible: true, id: id(),
+    row: {
+      bg: 'none', py: 'md', align: 'center',
+      cols: [
+        { id: id(), elements: [{ id: id(), kind: 'image', url: '/doctor.webp', alt: '' }] },
+        { id: id(), elements: [
+          { id: id(), kind: 'heading', text: 'Tiêu đề khối mới' },
+          { id: id(), kind: 'text', text: 'Nhập nội dung mô tả tại đây. Bạn có thể thêm ảnh, nút bấm hoặc chia thêm cột.' },
+        ] },
+      ],
+    },
+  }
 }
 
 function mergeC(p: any): SiteContent {
@@ -378,7 +561,14 @@ function mergeC(p: any): SiteContent {
     info: { ...DEFAULT_CONTENT.info, ...((p && p.info) ?? {}) },
     booking: { ...DEFAULT_CONTENT.booking, ...((p && p.booking) ?? {}) },
     cta: { ...DEFAULT_CONTENT.cta, ...((p && p.cta) ?? {}) },
+    bookingForm: (p?.bookingForm && Array.isArray(p.bookingForm.fields) && p.bookingForm.fields.length)
+      ? { submitText: p.bookingForm.submitText ?? DEFAULT_CONTENT.bookingForm.submitText, fields: p.bookingForm.fields }
+      : DEFAULT_CONTENT.bookingForm,
     sections: cleanSections(p),
+    pages: Array.isArray(p?.pages) ? p.pages : [],
+    menu: Array.isArray(p?.menu) ? p.menu : [],
+    posts: Array.isArray(p?.posts) ? p.posts : [],
+    blog: { ...DEFAULT_CONTENT.blog, ...((p && p.blog) ?? {}) },
   }
 }
 
@@ -427,6 +617,9 @@ export const useContent = create<ContentState>()(
           // KHÔNG đụng nội dung form và KHÔNG tạo trạng thái "chưa lưu" (giữ nguyên dirty).
           const published = structuredClone(s.published)
           published.sections = structuredClone(content.sections)
+          published.pages = structuredClone(content.pages) // đa trang: đồng bộ luôn để áp dụng LIVE
+          published.posts = structuredClone(content.posts)
+          published.blog = structuredClone(content.blog)
           return { content, published, pubTs: new Date().toISOString() }
         }),
       save: () => set((s) => ({ published: structuredClone(s.content), dirty: false, pubTs: new Date().toISOString() })),

@@ -17,7 +17,7 @@ export const CHANGELOG: ChangeEntry[] = [
     date: '2026-07-03',
     title: 'Tùy chỉnh giao diện trực quan & Chế độ tối',
     notes: [
-      'Gộp “Bố cục” và “Sửa trực quan” thành một trang “Tùy chỉnh giao diện” toàn màn hình, kiểu WordPress.',
+      'Gộp “Bố cục” và “Sửa trực quan” thành một trang “Tùy chỉnh giao diện” toàn màn hình.',
       'Sửa ngay trên khung xem trước: rê chuột vào chữ/ảnh sẽ hiện cây bút chì — bấm để sửa tại chỗ; bảng bên trái tự mở đúng phần đang sửa.',
       'Bảng điều khiển: kéo–thả sắp xếp & ẩn/hiện các phần, thêm/sửa/xoá từng mục; xem thử máy tính · máy tính bảng · điện thoại (chuyển mượt); nút ẩn bảng để xem rộng.',
       'Nút “Xuất bản” có hiệu ứng đang lưu rồi mới báo thành công; cảnh báo khôi phục nếu rời đi khi chưa xuất bản.',

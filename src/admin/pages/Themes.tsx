@@ -1,12 +1,15 @@
 import { useState, useRef, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { Link } from 'react-router-dom'
 import { useContent } from '@/store/content'
 import { TEMPLATES, getTemplate, type SiteTemplate } from '@/site/templates'
 import { TemplateThumb } from '../TemplateThumb'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
 import { PageHead } from '../parts'
-import { Check, ExternalLink, LayoutTemplate, Eye, X, Monitor, Tablet, Smartphone, RefreshCw } from 'lucide-react'
+import { normalizeVN } from '@/lib/format'
+import { Check, ExternalLink, LayoutTemplate, Eye, X, Monitor, Tablet, Smartphone, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
 
 // Kích thước LOGIC theo thiết bị để xem thử trong modal (thu nhỏ vừa khung).
@@ -115,6 +118,9 @@ export function Themes() {
   const save = useContent((s) => s.save)
   const active = getTemplate(current)
   const [preview, setPreview] = useState<SiteTemplate | null>(null)
+  const [q, setQ] = useState('')
+  const nq = normalizeVN(q)
+  const list = nq ? TEMPLATES.filter((t) => normalizeVN(`${t.name} ${t.desc}`).includes(nq)) : TEMPLATES
 
   const apply = (t: SiteTemplate) => {
     set((c) => {
@@ -132,52 +138,55 @@ export function Themes() {
     <div>
       <PageHead title="Kho giao diện mẫu" desc="20 mẫu website — mỗi mẫu một bố cục & phối màu riêng. Ảnh xem trước là giao diện thật với nội dung của bạn." />
 
-      <div className="flex flex-wrap items-center gap-3 mb-6 text-sm text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1 font-semibold"><LayoutTemplate className="size-4" /> Đang dùng: {active.name}</span>
-        <span>Tinh chỉnh thêm màu/phông trong <b className="text-foreground">Cài đặt chung</b>.</span>
-        <a href="/" target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1.5 text-primary font-medium hover:underline"><ExternalLink className="size-4" /> Xem website</a>
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary px-3 py-1 text-sm font-semibold"><LayoutTemplate className="size-4" /> Đang dùng: {active.name}</span>
+        <a href="/" target="_blank" rel="noreferrer" className="hidden sm:inline-flex items-center gap-1.5 text-sm text-primary font-medium hover:underline"><ExternalLink className="size-4" /> Xem website</a>
+        <div className="ml-auto relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none z-10" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm giao diện đã cài…" className="h-10 pl-9" />
+        </div>
       </div>
 
-      <div className="grid gap-7 grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-        {TEMPLATES.map((t) => {
+      {/* Lưới giao diện kiểu WordPress: ảnh + lớp phủ hover có nút; chân thẻ = tên (+ nút Tùy chỉnh cho mẫu đang dùng) */}
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        {list.map((t) => {
           const isActive = t.id === current
           return (
-            <div key={t.id} className={`group relative flex flex-col rounded-2xl border bg-card overflow-hidden transition-shadow duration-200 ${isActive ? 'ring-2 ring-primary border-primary shadow-md' : 'hover:shadow-lg hover:border-primary/40'}`}>
-              <div className="relative border-b bg-muted/30 overflow-hidden rounded-t-2xl">
+            <div key={t.id} className={`group relative flex flex-col rounded-md border bg-card overflow-hidden transition-shadow ${isActive ? 'ring-2 ring-primary shadow-md' : 'hover:shadow-lg'}`}>
+              <div className="relative border-b bg-muted/30 overflow-hidden">
                 <TemplateThumb t={t} />
-                {isActive && <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold px-2.5 py-1 shadow"><Check className="size-3.5" /> Đang dùng</span>}
+                {/* Lớp phủ khi rê chuột — nút Xem trước / Áp dụng */}
+                <div className="absolute inset-0 grid place-items-center gap-2 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-2">
+                    <Button type="button" size="sm" variant="secondary" onClick={() => setPreview(t)}><Eye className="size-4" /> Xem trước</Button>
+                    {!isActive && (
+                      <ConfirmDialog
+                        title={`Áp dụng mẫu “${t.name}”?`}
+                        desc="Toàn bộ bố cục và phối màu website sẽ đổi sang mẫu này và cập nhật ngay lên website."
+                        confirmText="Áp dụng"
+                        onConfirm={() => apply(t)}
+                        trigger={<Button data-tpl={t.id} size="sm"><Check className="size-4" /> Áp dụng</Button>}
+                      />
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="p-4 flex flex-col flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-semibold text-[15px] truncate">{t.name}</h3>
+              {/* Chân thẻ */}
+              {isActive ? (
+                <div className="flex items-center gap-2 px-3.5 py-2.5 bg-foreground text-background">
+                  <span className="text-sm font-semibold truncate flex-1"><span className="text-background/60 font-normal">Đang dùng: </span>{t.name}</span>
+                  <Button asChild size="sm" variant="secondary" className="shrink-0"><Link to="/admin/customize"><SlidersHorizontal className="size-4" /> Tùy chỉnh</Link></Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3.5 py-3">
+                  <span className="text-[15px] font-semibold truncate flex-1">{t.name}</span>
                   <div className="flex gap-1 shrink-0">{[t.theme.primary, t.theme.navy, t.theme.accent].map((c, i) => <span key={i} className="size-4 rounded-full ring-1 ring-black/10" style={{ background: c }} />)}</div>
                 </div>
-                <p className="text-[12.5px] text-muted-foreground mt-1.5 line-clamp-2 min-h-[34px]">{t.desc}</p>
-
-                {/* 2 nút bên dưới, 2 màu khác nhau: Xem trước (viền) · Áp dụng (nền chính) */}
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <Button type="button" size="sm" variant="outline" onClick={() => setPreview(t)}
-                    className="h-9 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary">
-                    <Eye className="size-4" /> Xem trước
-                  </Button>
-                  {isActive ? (
-                    <Button type="button" size="sm" disabled variant="secondary" className="h-9 text-primary">
-                      <Check className="size-4" /> Đang dùng
-                    </Button>
-                  ) : (
-                    <ConfirmDialog
-                      title={`Áp dụng mẫu “${t.name}”?`}
-                      desc="Toàn bộ bố cục và phối màu website sẽ đổi sang mẫu này và cập nhật ngay lên website."
-                      confirmText="Áp dụng"
-                      onConfirm={() => apply(t)}
-                      trigger={<Button data-tpl={t.id} size="sm" className="h-9 w-full"><Check className="size-4" /> Áp dụng</Button>}
-                    />
-                  )}
-                </div>
-              </div>
+              )}
             </div>
           )
         })}
+        {list.length === 0 && <div className="col-span-full rounded-xl border border-dashed py-16 text-center text-sm text-muted-foreground">Không tìm thấy giao diện nào cho “{q}”.</div>}
       </div>
 
       {preview && (

@@ -5,6 +5,7 @@ import { useContent } from '@/store/content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Lock, User, Eye, EyeOff, Loader2, ArrowRight, ExternalLink } from 'lucide-react'
 import { isBackend } from '@/lib/backend'
 
@@ -77,12 +78,7 @@ export function Login() {
             </div>
 
             <label className="flex items-center gap-2.5 select-none cursor-pointer text-sm">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRememberState(e.target.checked)}
-                className="size-4 rounded border-input accent-primary cursor-pointer"
-              />
+              <Checkbox checked={remember} onCheckedChange={(v) => setRememberState(!!v)} />
               <span className="text-foreground/80">Ghi nhớ đăng nhập</span>
             </label>
 

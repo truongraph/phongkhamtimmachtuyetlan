@@ -4,10 +4,16 @@ import { initContentSync } from './lib/sync'
 import { initBookingsRealtime } from './store/bookings'
 import { useTheme } from './store/theme'
 import SitePage from './site/SitePage'
+import CustomPageView from './site/CustomPageView'
+import { SlugView, PostView } from './site/Blog'
 import { Login } from './admin/Login'
 import { RequireAuth, AdminLayout } from './admin/AdminLayout'
 import { Dashboard } from './admin/pages/Dashboard'
 import { Customize } from './admin/pages/Customize'
+import { Pages } from './admin/pages/Pages'
+import { Posts } from './admin/pages/Posts'
+import { Menus } from './admin/pages/Menus'
+import { BookingFormEditor } from './admin/pages/BookingFormEditor'
 import { Settings } from './admin/pages/Settings'
 import { HeroEditor } from './admin/pages/HeroEditor'
 import { StatsEditor } from './admin/pages/StatsEditor'
@@ -49,10 +55,14 @@ export default function App() {
         <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<Dashboard />} />
           <Route path="bookings" element={<Bookings />} />
+          <Route path="booking-form" element={<BookingFormEditor />} />
           {/* Các đường cũ → gộp về Tùy chỉnh giao diện */}
           <Route path="layout" element={<Navigate to="/admin/customize" replace />} />
           <Route path="editor" element={<Navigate to="/admin/customize" replace />} />
           <Route path="preview" element={<Navigate to="/admin/customize" replace />} />
+          <Route path="pages" element={<Pages />} />
+          <Route path="posts" element={<Posts />} />
+          <Route path="menus" element={<Menus />} />
           <Route path="themes" element={<Themes />} />
           <Route path="hero" element={<HeroEditor />} />
           <Route path="stats" element={<StatsEditor />} />
@@ -70,6 +80,9 @@ export default function App() {
           <Route path="backup" element={<Backup />} />
           <Route path="account" element={<Account />} />
         </Route>
+        {/* Trang phụ / Blog — đặt SAU các route tĩnh /admin, TRƯỚC catch-all */}
+        <Route path="/:slug" element={<SlugView pageFallback={<CustomPageView />} />} />
+        <Route path="/:slug/:sub" element={<PostView />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

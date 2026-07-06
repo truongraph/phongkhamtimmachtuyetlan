@@ -2,13 +2,12 @@ import { Link, NavLink, Outlet, useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '@/store/auth'
 import { Toaster } from '@/components/ui/sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Popover } from '@/components/ui/popover'
 import {
   LayoutDashboard, Blocks, Home, BarChart3, User, Stethoscope, ShieldCheck, HeartPulse,
   GraduationCap, MessageSquareQuote, HelpCircle, CircleDollarSign, Images,
   MapPin, Settings, KeyRound, LogOut, ExternalLink, Menu, X, CalendarClock, Palette,
-  BookOpen, Search, ChevronDown, UserRound, PanelLeft, DatabaseBackup, Check, Undo2, Wrench, Bell, Sparkles, Sun, Moon,
+  BookOpen, Search, ChevronDown, UserRound, PanelLeft, DatabaseBackup, Check, Undo2, Wrench, Bell, Sparkles, Sun, Moon, FileText, ClipboardList, Newspaper, ListTree,
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
@@ -56,8 +55,12 @@ export function RequireAuth({ children }: { children: JSX.Element }) {
 const NAV = [
   { to: '/admin', end: true, icon: LayoutDashboard, label: 'Tổng quan' },
   { to: '/admin/bookings', icon: CalendarClock, label: 'Đặt lịch', badge: true },
+  { to: '/admin/booking-form', icon: ClipboardList, label: 'Form đặt lịch' },
   { section: 'Nội dung' },
   { to: '/admin/customize', icon: Blocks, label: 'Tùy chỉnh giao diện' },
+  { to: '/admin/pages', icon: FileText, label: 'Trang' },
+  { to: '/admin/posts', icon: Newspaper, label: 'Bài viết / Tin tức' },
+  { to: '/admin/menus', icon: ListTree, label: 'Menu' },
   { to: '/admin/hero', icon: Home, label: 'Trang chủ' },
   { to: '/admin/stats', icon: BarChart3, label: 'Dải số liệu' },
   { to: '/admin/about', icon: User, label: 'Giới thiệu bác sĩ' },

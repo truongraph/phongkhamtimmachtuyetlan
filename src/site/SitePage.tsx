@@ -4,12 +4,14 @@ import { useTemplate } from './templates'
 import { SiteHeader, SiteFooter, FloatingWidgets } from './SiteChrome'
 import { Hero, BookingBand, BookingModal, openBooking } from './sections/Hero'
 import { Stats, Why, Services, About, Specialties, Journey, Contact, Faq, Testimonials, Pricing, Gallery } from './sections/Sections'
+import { CustomRow } from './sections/CustomRow'
 import { SeoHead } from './Ecg'
 import { EditBridge, Editable } from './edit'
+import { Reveal } from './Reveal'
 import { Phone } from 'lucide-react'
 import type { SectionType } from '@/store/content'
 
-const MAP: Record<SectionType, () => JSX.Element> = {
+const MAP: Record<Exclude<SectionType, 'row'>, () => JSX.Element> = {
   stats: Stats, why: Why, services: Services, about: About, specialties: Specialties, journey: Journey,
   faq: Faq, testimonials: Testimonials, pricing: Pricing, gallery: Gallery, contact: Contact,
 }
@@ -44,8 +46,9 @@ export default function SitePage() {
         <Hero />
         {tpl.hero !== 'form' && <BookingBand />}
         {sections.filter((s) => s.visible).map((s) => {
+          if (s.type === 'row') return s.row ? <CustomRow key={s.id ?? s.type} block={s.row} base={`sections.${s.id ?? s.type}`} /> : null
           const Cmp = MAP[s.type]
-          return <Cmp key={s.type} />
+          return <Cmp key={s.id ?? s.type} />
         })}
         <FinalCta />
       </main>
@@ -53,6 +56,7 @@ export default function SitePage() {
       <FloatingWidgets />
       <BookingModal />
       <EditBridge />
+      <Reveal />
     </div>
   )
 }

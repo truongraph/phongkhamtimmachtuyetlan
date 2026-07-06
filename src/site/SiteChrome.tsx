@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useContent } from '@/store/content'
 import { useTemplate } from './templates'
 import { Icon } from '@/lib/icons'
@@ -8,7 +9,7 @@ import { Editable, EditableImage } from './edit'
 import type { SectionType } from '@/store/content'
 
 // Ánh xạ phần trên trang → mục menu (id khu vực + nhãn). Phần không có ở đây thì không lên menu.
-const SECTION_NAV: Partial<Record<SectionType, { id: string; label: string }>> = {
+export const SECTION_NAV: Partial<Record<SectionType, { id: string; label: string }>> = {
   about: { id: 'gioi-thieu', label: 'Giới thiệu' },
   services: { id: 'dich-vu', label: 'Dịch vụ' },
   specialties: { id: 'chuyen-mon', label: 'Chuyên môn' },
@@ -20,16 +21,38 @@ const SECTION_NAV: Partial<Record<SectionType, { id: string; label: string }>> =
   contact: { id: 'lien-he', label: 'Liên hệ' },
 }
 
-interface NavItem { id: string; label: string; spy?: string }
-// Menu ĐỘNG: “Trang chủ” + các phần ĐANG HIỂN THỊ, theo đúng thứ tự trong Bố cục.
+interface NavItem { id: string; label: string; spy?: string; to?: string }
+// Menu: nếu có MENU TUỲ CHỈNH thì theo đúng đó; ngược lại TỰ ĐỘNG (trang chủ + phần hiển thị + trang phụ).
 function useNav(): NavItem[] {
   const sections = useContent((s) => s.published.sections)
+  const pages = useContent((s) => s.published.pages)
+  const menu = useContent((s) => s.published.menu)
+  const blog = useContent((s) => s.published.blog)
+  const hasPosts = useContent((s) => s.published.posts.some((p) => p.published))
+
+  if (menu && menu.length) {
+    return menu.map((m): NavItem => {
+      if (m.kind === 'home') return { id: 'top', label: m.label, spy: 'dat-lich' }
+      if (m.kind === 'page') { const p = pages.find((x) => x.id === m.ref); return { id: `page-${m.ref}`, label: m.label, to: p ? `/${p.slug}` : '/' } }
+      if (m.kind === 'url') return { id: `url-${m.id}`, label: m.label, to: m.ref || '#' }
+      return { id: m.ref || '', label: m.label } // section (mỏ neo)
+    }).filter((n) => n.label)
+  }
+
   const items: NavItem[] = [{ id: 'top', label: 'Trang chủ', spy: 'dat-lich' }]
   for (const s of sections) {
     const m = s.visible ? SECTION_NAV[s.type] : undefined
     if (m) items.push(m)
   }
+  for (const p of pages) items.push({ id: `page-${p.id}`, label: p.title, to: `/${p.slug}` })
+  if (hasPosts) items.push({ id: 'blog', label: blog.title, to: `/${blog.slug}` })
   return items
+}
+
+/** Đường dẫn của một mục menu: trang phụ = route thật; mục neo = "#id" (trên trang chủ) hoặc "/#id" (từ trang khác). */
+function navHref(n: NavItem, onHome: boolean): string {
+  if (n.to) return n.to
+  return onHome ? `#${n.id}` : `/#${n.id}`
 }
 
 function useScrollSpy(ids: string[]) {
@@ -48,20 +71,21 @@ function useScrollSpy(ids: string[]) {
 
 function Logo() {
   const info = useContent((s) => s.published.info)
+  const onHome = useLocation().pathname === '/'
   return (
-    <a href="#top" aria-label={info.clinicName} className="flex items-center">
+    <a href={onHome ? '#top' : '/'} aria-label={info.clinicName} className="flex items-center">
       <EditableImage path="info.logoUrl" src={info.logoUrl} alt={info.clinicName} className="h-14 md:h-16 w-auto max-w-[240px] object-contain" />
     </a>
   )
 }
 
-function NavLinks({ nav, active, light, center }: { nav: NavItem[]; active: string; light?: boolean; center?: boolean }) {
+function NavLinks({ nav, active, light, center, onHome }: { nav: NavItem[]; active: string; light?: boolean; center?: boolean; onHome: boolean }) {
   return (
     <nav className={`hidden lg:flex items-center gap-1 ${center ? 'justify-center' : ''}`}>
       {nav.map((n) => {
         const on = active === (n.spy ?? n.id)
         return (
-          <a key={n.id} href={`#${n.id}`} className="relative px-3 py-2 rounded-lg text-[.94rem] font-semibold transition-colors"
+          <a key={n.id} href={navHref(n, onHome)} className="relative px-3 py-2 rounded-lg text-[.94rem] font-semibold transition-colors"
             style={{ color: light ? (on ? '#fff' : 'rgba(255,255,255,.82)') : (on ? 'var(--tl-primary)' : 'var(--tl-ink)') }}>
             {n.label}
             <span className="absolute left-3 right-3 -bottom-[1px] h-[2.5px] rounded origin-left transition-transform"
@@ -92,6 +116,7 @@ export function SiteHeader({ tel }: { tel: string }) {
   const nav = useNav()
   const navIds = new Set(nav.map((n) => n.id))
   const active = useScrollSpy(nav.map((n) => n.spy ?? n.id))
+  const onHome = useLocation().pathname === '/'
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 6)
     on()
@@ -139,7 +164,7 @@ export function SiteHeader({ tel }: { tel: string }) {
               <Cta tel={tel} />
             </div>
             <div className="hidden lg:block border-t pb-1.5" style={{ borderColor: 'var(--tl-line)' }}>
-              <NavLinks nav={nav} active={active} center />
+              <NavLinks nav={nav} active={active} center onHome={onHome} />
             </div>
           </div>
         </header>
@@ -147,7 +172,7 @@ export function SiteHeader({ tel }: { tel: string }) {
         <header className={headerCls} style={headerStyle}>
           <div className="container flex h-[64px] md:h-[74px] items-center justify-between gap-4">
             <Logo />
-            <NavLinks nav={nav} active={active} light={isBar} />
+            <NavLinks nav={nav} active={active} light={isBar} onHome={onHome} />
             <Cta tel={tel} bar={isBar} />
           </div>
         </header>
@@ -169,7 +194,7 @@ export function SiteHeader({ tel }: { tel: string }) {
                 {t.label}
               </a>
             ) : (
-              <a key={t.id} href={`#${t.id}`} className="relative flex-1 flex flex-col items-center gap-[3px] pt-[9px] pb-2 text-[.66rem] font-semibold transition-colors"
+              <a key={t.id} href={onHome ? `#${t.id}` : `/#${t.id}`} className="relative flex-1 flex flex-col items-center gap-[3px] pt-[9px] pb-2 text-[.66rem] font-semibold transition-colors"
                 style={{ color: active === t.id ? 'var(--tl-primary)' : 'var(--tl-slate)' }}>
                 <span className="absolute top-0 left-[37%] -translate-x-1/2 w-[26px] h-[3px] rounded-b transition-transform origin-top" style={{ background: 'var(--tl-accent)', transform: active === t.id ? 'scaleX(1)' : 'scaleX(0)' }} />
                 <t.I className="size-[21px]" />
@@ -186,6 +211,7 @@ export function SiteHeader({ tel }: { tel: string }) {
 export function SiteFooter() {
   const { info, footerAbout } = useContent((s) => s.published)
   const nav = useNav()
+  const onHome = useLocation().pathname === '/'
   return (
     <footer className="text-white/65 pt-[52px] pb-20 lg:pb-10 text-[.92rem]" style={{ background: 'linear-gradient(180deg,color-mix(in srgb,var(--tl-deep) 80%,#071427),color-mix(in srgb,var(--tl-deep) 50%,#071427))' }}>
       <div className="container">
@@ -201,7 +227,7 @@ export function SiteFooter() {
           <div>
             <h4 className="text-white text-[.8rem] tracking-[.1em] uppercase mb-4 font-bold font-sans">Liên kết</h4>
             <ul className="grid gap-2.5">
-              {nav.map((n) => <li key={n.id}><a href={`#${n.id}`} className="hover:text-white">{n.label}</a></li>)}
+              {nav.map((n) => <li key={n.id}><a href={navHref(n, onHome)} className="hover:text-white">{n.label}</a></li>)}
             </ul>
           </div>
           <div>

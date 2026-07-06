@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { Slider } from '@/components/ui/slider'
 import { Combobox } from '@/components/ui/combobox'
 import { Field, Area, IconPicker, ImageUpload, PhoneField, SortableList, DeleteBtn } from '../parts'
 import { AddressPicker } from '../AddressPicker'
@@ -396,7 +397,7 @@ function SetThemeBody() {
         onChange={(v) => set((d) => { d.theme.fontBody = v })} />
       <div className="space-y-1.5">
         <Label className="text-[.82rem]">Bo góc ({c.theme.radius}px)</Label>
-        <input type="range" min={0} max={24} value={c.theme.radius} onChange={(e) => set((d) => { d.theme.radius = Number(e.target.value) })} className="w-full accent-primary" />
+        <Slider min={0} max={24} value={[c.theme.radius]} onValueChange={([v]) => set((d) => { d.theme.radius = v })} className="w-full" />
       </div>
     </>
   )

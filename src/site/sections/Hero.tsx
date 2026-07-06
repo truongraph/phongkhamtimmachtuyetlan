@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { useContent } from '@/store/content'
+import { useContent, type FormField } from '@/store/content'
 import { useTemplate, useSkin, type ImageShape } from '../templates'
 import { useBookings, sendBookingEmail } from '@/store/bookings'
 import { sendBookingEmailEdge } from '@/lib/backend'
@@ -9,6 +9,7 @@ import { Phone, Check, CalendarCheck, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Combobox } from '@/components/ui/combobox'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -130,14 +131,47 @@ function StatsInline() {
   )
 }
 
+const CORE_KEYS = ['name', 'phone', 'service', 'date', 'time', 'note']
+
+/** Render một field của form đặt lịch theo loại. */
+export function FieldControl({ f, value, onChange, options }: { f: FormField; value: string; onChange: (v: string) => void; options: string[] }) {
+  if (f.type === 'checkbox') {
+    return (
+      <label className="flex items-start gap-2.5 cursor-pointer text-[.9rem]">
+        <Checkbox checked={value === 'Có'} onCheckedChange={(v) => onChange(v ? 'Có' : '')} className="mt-0.5 data-[state=checked]:bg-[var(--tl-primary)] data-[state=checked]:border-[var(--tl-primary)]" />
+        <span style={{ color: 'var(--tl-ink)' }}>{f.label}{f.required ? ' *' : ''}</span>
+      </label>
+    )
+  }
+  const label = <Label>{f.label}{f.required ? ' *' : ''}</Label>
+  const opts = options.map((o) => ({ value: o, label: o }))
+  switch (f.type) {
+    case 'textarea':
+      return <>{label}<Textarea value={value} onChange={(e) => onChange(e.target.value)} rows={2} placeholder={f.placeholder} /></>
+    case 'select':
+    case 'time':
+      return <>{label}<Combobox value={value} onChange={onChange} placeholder={f.placeholder || 'Chọn…'} searchPlaceholder="Tìm…" options={opts} /></>
+    case 'date':
+      return <>{label}<DatePicker value={value} onChange={onChange} disablePast placeholder={f.placeholder || 'Chọn ngày'} /></>
+    case 'phone':
+      return <>{label}<Input type="tel" inputMode="numeric" value={value} onChange={(e) => onChange(formatVnPhone(e.target.value))} placeholder={f.placeholder} /></>
+    case 'email':
+      return <>{label}<Input type="email" value={value} onChange={(e) => onChange(e.target.value)} placeholder={f.placeholder} /></>
+    default:
+      return <>{label}<Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={f.placeholder} /></>
+  }
+}
+
 export function BookingForm() {
-  const { hero, info, services, booking, theme } = useContent((s) => s.published)
+  const { hero, info, services, booking, theme, bookingForm } = useContent((s) => s.published)
   const addBooking = useBookings((s) => s.add)
   const tel = info.phone.replace(/\s/g, '')
-  const [f, setF] = useState({ name: '', phone: '', service: '', date: '', time: 'Chiều (17:00–20:00)', note: '' })
+  const fields = bookingForm.fields
+  const [vals, setVals] = useState<Record<string, string>>({})
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [sending, setSending] = useState(false)
-  const upd = (patch: Partial<typeof f>) => setF((s) => ({ ...s, ...patch }))
+  const getVal = (f: FormField) => vals[f.id] ?? ''
+  const setVal = (id: string, v: string) => setVals((s) => ({ ...s, [id]: v }))
 
   // Tự ẩn thông báo sau vài giây (thành công lâu hơn để khách kịp đọc xác nhận).
   useEffect(() => {
@@ -146,20 +180,41 @@ export function BookingForm() {
     return () => clearTimeout(t)
   }, [msg])
 
+  // Lựa chọn cho field: 'service' bỏ trống → tự lấy từ danh sách dịch vụ hiện có.
+  const optionsFor = (f: FormField) => {
+    if (f.key === 'service' && (!f.options || !f.options.length)) return [...services.map((s) => s.title), 'Khác / Tư vấn chung']
+    return f.options ?? []
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!f.name.trim() || !f.phone.trim()) { setMsg({ ok: false, text: 'Vui lòng nhập họ tên và số điện thoại.' }); return }
-    const digits = phoneDigits(f.phone)
-    if (digits.length < 9 || digits.length > 11) { setMsg({ ok: false, text: 'Số điện thoại chưa hợp lệ (9–11 chữ số).' }); return }
+    for (const f of fields) {
+      const val = getVal(f).trim()
+      if (f.required && f.type === 'checkbox' && val !== 'Có') { setMsg({ ok: false, text: `Vui lòng xác nhận "${f.label}".` }); return }
+      if (f.required && f.type !== 'checkbox' && !val) { setMsg({ ok: false, text: `Vui lòng nhập "${f.label}".` }); return }
+      if (f.type === 'phone' && val) {
+        const digits = phoneDigits(val)
+        if (digits.length < 9 || digits.length > 11) { setMsg({ ok: false, text: 'Số điện thoại chưa hợp lệ (9–11 chữ số).' }); return }
+      }
+    }
+    // Gom giá trị: field lõi → cột đặt lịch; field tuỳ chỉnh → gộp vào Ghi chú.
+    const byKey = (k: string) => fields.find((f) => f.key === k)
+    const v = (k: string) => { const f = byKey(k); return f ? getVal(f).trim() : '' }
+    const customLines = fields
+      .filter((f) => !CORE_KEYS.includes(f.key))
+      .map((f) => { const val = getVal(f).trim(); return val ? `${f.label}: ${val}` : '' })
+      .filter(Boolean)
+    const note = [v('note'), ...customLines].filter(Boolean).join('\n')
+    const payload = { name: v('name'), phone: v('phone'), service: v('service') || 'Tư vấn chung', date: v('date'), time: v('time'), note }
+
     setSending(true)
-    const payload = { name: f.name.trim(), phone: f.phone.trim(), service: f.service || 'Tư vấn chung', date: f.date, time: f.time, note: f.note.trim() }
     const saved = await addBooking(payload)
     const emailed = await sendBookingEmail(booking, payload)
     sendBookingEmailEdge({ ...payload, clinic: info.clinicName, primary: theme.primary, accent: theme.accent })
     setSending(false)
     if (saved || emailed) {
-      setMsg({ ok: true, text: `Cảm ơn ${payload.name}! Phòng khám đã nhận yêu cầu và sẽ liên hệ số ${payload.phone} để xác nhận lịch hẹn.` })
-      setF({ name: '', phone: '', service: '', date: '', time: 'Chiều (17:00–20:00)', note: '' })
+      setMsg({ ok: true, text: `Cảm ơn ${payload.name || 'bạn'}! Phòng khám đã nhận yêu cầu và sẽ liên hệ${payload.phone ? ' số ' + payload.phone : ''} để xác nhận lịch hẹn.` })
+      setVals({})
     } else {
       setMsg({ ok: false, text: `Xin lỗi, hệ thống chưa gửi được yêu cầu. Vui lòng gọi trực tiếp hotline ${info.phone} để được hỗ trợ ngay.` })
     }
@@ -173,39 +228,14 @@ export function BookingForm() {
       </div>
       <form className="p-6 space-y-4" onSubmit={submit}>
         <div className="grid sm:grid-cols-2 gap-3">
-          <div className="space-y-1.5"><Label>Họ và tên *</Label><Input value={f.name} onChange={(e) => upd({ name: e.target.value })} placeholder="Nguyễn Văn A" /></div>
-          <div className="space-y-1.5"><Label>Số điện thoại *</Label><Input type="tel" inputMode="numeric" value={f.phone} onChange={(e) => upd({ phone: formatVnPhone(e.target.value) })} placeholder="090 941 073" /></div>
+          {fields.map((f) => (
+            <div key={f.id} className={`space-y-1.5 ${f.width === 'full' || f.type === 'checkbox' || f.type === 'textarea' ? 'sm:col-span-2' : ''}`}>
+              <FieldControl f={f} value={getVal(f)} onChange={(val) => setVal(f.id, val)} options={optionsFor(f)} />
+            </div>
+          ))}
         </div>
-        <div className="space-y-1.5">
-          <Label>Dịch vụ</Label>
-          <Combobox
-            value={f.service}
-            onChange={(service) => upd({ service })}
-            placeholder="Chọn dịch vụ cần khám"
-            searchPlaceholder="Tìm dịch vụ…"
-            options={[...services.map((s) => ({ value: s.title, label: s.title })), { value: 'Khác', label: 'Khác / Tư vấn chung' }]}
-          />
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="space-y-1.5"><Label>Ngày mong muốn</Label><DatePicker value={f.date} onChange={(date) => upd({ date })} disablePast placeholder="Chọn ngày khám" /></div>
-          <div className="space-y-1.5">
-            <Label>Buổi khám</Label>
-            <Combobox
-              value={f.time}
-              onChange={(time) => upd({ time })}
-              placeholder="Chọn buổi khám"
-              searchPlaceholder="Tìm buổi khám…"
-              options={[
-                { value: 'Chiều (17:00–20:00)', label: 'Chiều (17:00–20:00)' },
-                { value: 'Sáng CN (08:00–11:00)', label: 'Sáng CN (08:00–11:00)' },
-                { value: 'Bác sĩ tư vấn giờ phù hợp', label: 'Bác sĩ tư vấn giờ phù hợp' },
-              ]}
-            />
-          </div>
-        </div>
-        <div className="space-y-1.5"><Label>Ghi chú (triệu chứng, mong muốn…)</Label><Textarea value={f.note} onChange={(e) => upd({ note: e.target.value })} rows={2} placeholder="VD: hay hồi hộp, khó thở khi gắng sức…" /></div>
         <Button type="submit" disabled={sending} className="w-full h-11 text-white" style={{ background: 'var(--tl-primary)', borderRadius: 'var(--tl-btn)' }}>
-          {sending ? 'Đang gửi…' : 'Gửi đăng ký khám'}
+          {sending ? 'Đang gửi…' : (bookingForm.submitText || 'Gửi đăng ký khám')}
         </Button>
         {msg && <div className="border px-3.5 py-3 text-[.9rem] font-medium rounded-lg" style={msg.ok ? { background: '#EAF7EE', borderColor: '#B7E3C4', color: '#1B6B3A' } : { background: '#FDECEC', borderColor: '#F5C2C2', color: '#B8151E' }}>{msg.text}</div>}
         <p className="text-center text-[.85rem]" style={{ color: 'var(--tl-slate)' }}>Hoặc gọi ngay <a href={`tel:${tel}`} className="font-bold" style={{ color: 'var(--tl-primary)' }}>{info.phone}</a></p>

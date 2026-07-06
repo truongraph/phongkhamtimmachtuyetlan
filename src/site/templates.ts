@@ -1,4 +1,5 @@
 import { useContent } from '@/store/content'
+import type { SectionType } from '@/store/content'
 
 export type HeaderVariant = 'utility' | 'simple' | 'centered' | 'bar'
 export type HeroVariant = 'form' | 'split' | 'centered' | 'imageLeft' | 'statband'
@@ -78,6 +79,17 @@ export function previewTemplateId(): string | null {
 export function useTemplate(): SiteTemplate {
   const id = useContent((s) => s.published.template)
   return getTemplate(previewTemplateId() ?? id)
+}
+
+/**
+ * Biến thể bố cục HIỆU LỰC cho một khu vực: ưu tiên phần ghi đè lưu trong `sections`
+ * (bác sĩ tự đổi kiểu cho riêng khu vực đó), nếu không có thì theo mẫu (`fallback`).
+ * Khi đang XEM THỬ mẫu (?tpl=…) thì bỏ qua ghi đè để thấy đúng bố cục gốc của mẫu.
+ */
+export function useVariant<T extends string>(type: SectionType, fallback: T): T {
+  const ov = useContent((s) => s.published.sections.find((x) => x.type === type)?.variant)
+  if (previewTemplateId()) return fallback
+  return (ov as T) || fallback
 }
 
 export function btnRadius(shape: ButtonShape) {
