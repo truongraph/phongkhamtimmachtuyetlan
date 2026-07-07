@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // Cổng chạy local — đổi số ở đây nếu muốn cổng khác.
-const PORT = 3000
+const PORT = 5173
 
 export default defineConfig({
   plugins: [react()],

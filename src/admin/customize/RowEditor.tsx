@@ -12,6 +12,7 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { useMedia } from '../media/MediaPicker'
 import {
   Plus, Trash2, GripVertical, Image as ImageIcon, Type, Heading,
   MousePointerClick, Columns3, Sparkles, Video, StretchVertical, Minus, MapPin, List, X, Quote, Images, Code,
@@ -78,14 +79,14 @@ function pickImageFile(onPick: (url: string) => void) {
 
 /** Bảng sửa 1 phần tử theo loại. */
 function ElEditor({ el, onPatch }: { el: RowElement; onPatch: (patch: Record<string, unknown>) => void }) {
+  const openMedia = useMedia()
   if (el.kind === 'image') {
     return (
       <div className="space-y-2">
         <img src={el.url} alt="" className="h-24 w-full rounded-md border object-cover bg-muted" />
         <div className="flex gap-2">
-          <Button type="button" size="sm" variant="outline" onClick={() => pickImageFile((url) => onPatch({ url }))}>
-            <ImageIcon className="size-3.5" /> Đổi ảnh
-          </Button>
+          <Button type="button" size="sm" variant="outline" className="flex-1" onClick={() => pickImageFile((url) => onPatch({ url }))}><ImageIcon className="size-3.5" /> Tải lên</Button>
+          <Button type="button" size="sm" variant="outline" className="flex-1" onClick={() => openMedia((url) => onPatch({ url }))}><Images className="size-3.5" /> Từ thư viện</Button>
         </div>
         <Input value={el.alt || ''} onChange={(e) => onPatch({ alt: e.target.value })} placeholder="Mô tả ảnh (alt)" className="h-9" />
       </div>
@@ -210,6 +211,7 @@ export function RowEditorDialog({ target, onClose }: { target: RowTarget | null;
   const section = useContent((s) => (target ? arrOf(s.content, target)?.find((x) => x.id === target.blockId) : undefined))
   const setLayout = useContent((s) => s.setLayout)
   const newId = useContent((s) => s.newId)
+  const openMedia = useMedia()
   const block = section?.row
 
   // Mọi thay đổi ghi thẳng vào khối (áp dụng LIVE, giống thao tác bố cục).
@@ -326,11 +328,15 @@ export function RowEditorDialog({ target, onClose }: { target: RowTarget | null;
                 {block.bgImage ? (
                   <div className="flex items-center gap-1.5">
                     <img src={block.bgImage} alt="" className="h-9 w-14 rounded object-cover border" />
-                    <Button size="sm" variant="outline" className="h-9" onClick={() => pickImageFile((url) => edit((r) => { r.bgImage = url }))}>Đổi</Button>
+                    <Button size="sm" variant="outline" className="h-9" onClick={() => pickImageFile((url) => edit((r) => { r.bgImage = url }))}>Tải lên</Button>
+                    <Button size="sm" variant="outline" className="h-9" onClick={() => openMedia((url) => edit((r) => { r.bgImage = url }))}><Images className="size-4" /></Button>
                     <Button size="sm" variant="outline" className="h-9 px-2 text-destructive hover:text-destructive" title="Bỏ ảnh nền" onClick={() => edit((r) => { delete r.bgImage })}><X className="size-4" /></Button>
                   </div>
                 ) : (
-                  <Button size="sm" variant="outline" className="h-9" onClick={() => pickImageFile((url) => edit((r) => { r.bgImage = url }))}><ImageIcon className="size-4" /> Chọn ảnh</Button>
+                  <div className="flex gap-1.5">
+                    <Button size="sm" variant="outline" className="h-9" onClick={() => pickImageFile((url) => edit((r) => { r.bgImage = url }))}><ImageIcon className="size-4" /> Tải lên</Button>
+                    <Button size="sm" variant="outline" className="h-9" onClick={() => openMedia((url) => edit((r) => { r.bgImage = url }))}><Images className="size-4" /> Thư viện</Button>
+                  </div>
                 )}
               </div>
               {block.bgImage && (

@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Blocks, Home, BarChart3, User, Stethoscope, ShieldCheck, HeartPulse,
   GraduationCap, MessageSquareQuote, HelpCircle, CircleDollarSign, Images,
   MapPin, Settings, KeyRound, LogOut, ExternalLink, Menu, X, CalendarClock, Palette,
-  BookOpen, Search, ChevronDown, UserRound, PanelLeft, DatabaseBackup, Check, Undo2, Wrench, Bell, Sparkles, Sun, Moon, FileText, ClipboardList, Newspaper, ListTree,
+  BookOpen, Search, ChevronDown, UserRound, PanelLeft, DatabaseBackup, Check, Undo2, Wrench, Bell, Sparkles, Sun, Moon, FileText, ClipboardList, Newspaper, ListTree, ImagePlus,
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
@@ -19,6 +19,7 @@ import { toast } from 'sonner'
 import { SEARCH_INDEX } from './searchIndex'
 import { CHANGELOG } from '@/lib/changelog'
 import { useTheme } from '@/store/theme'
+import { MediaProvider } from './media/MediaPicker'
 
 /** Tooltip nhỏ hiện dưới nút khi rê chuột. */
 function TipLabel({ children }: { children: React.ReactNode }) {
@@ -61,6 +62,7 @@ const NAV = [
   { to: '/admin/pages', icon: FileText, label: 'Trang' },
   { to: '/admin/posts', icon: Newspaper, label: 'Bài viết / Tin tức' },
   { to: '/admin/menus', icon: ListTree, label: 'Menu' },
+  { to: '/admin/media', icon: ImagePlus, label: 'Thư viện Media' },
   { to: '/admin/hero', icon: Home, label: 'Trang chủ' },
   { to: '/admin/stats', icon: BarChart3, label: 'Dải số liệu' },
   { to: '/admin/about', icon: User, label: 'Giới thiệu bác sĩ' },
@@ -358,6 +360,7 @@ export function AdminLayout() {
   const mainPad = collapsed ? 'lg:pl-[74px]' : 'lg:pl-[268px]'
 
   return (
+    <MediaProvider>
     <div className="min-h-screen bg-secondary/40">
       <Toaster position="top-right" richColors />
       {/* desktop sidebar */}
@@ -441,5 +444,6 @@ export function AdminLayout() {
         </div>
       </div>
     </div>
+    </MediaProvider>
   )
 }

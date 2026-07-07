@@ -95,6 +95,9 @@ export interface Post {
   sections: SectionMeta[]
 }
 
+/* ---- THƯ VIỆN MEDIA (ảnh dùng chung) ---- */
+export interface MediaItem { id: string; name: string; url: string; ts: string }
+
 /* ---- MENU điều hướng tuỳ biến ---- */
 export interface MenuItem {
   id: string
@@ -103,6 +106,8 @@ export interface MenuItem {
   kind: 'home' | 'section' | 'page' | 'url'
   /** section: id mỏ neo (vd 'gioi-thieu'); page: id trang phụ; url: đường dẫn/URL. */
   ref?: string
+  /** id của mục MENU CHA (menu con nhiều cấp). Bỏ trống = mục cấp 1. */
+  parent?: string
 }
 
 /** Trang phụ tự tạo (ngoài Trang chủ). Nội dung = danh sách KHỐI TỰ DO (SectionMeta type='row'). */
@@ -246,6 +251,8 @@ export interface SiteContent {
   posts: Post[]
   /** Cấu hình trang tin tức (tiêu đề & đường dẫn danh sách). */
   blog: { title: string; slug: string; intro: string }
+  /** Thư viện ảnh dùng chung (upload 1 lần, tái dùng nhiều nơi). */
+  media: MediaItem[]
 }
 
 /* ============ DEFAULT CONTENT ============ */
@@ -460,6 +467,7 @@ export const DEFAULT_CONTENT: SiteContent = {
   menu: [],
   posts: [],
   blog: { title: 'Tin tức', slug: 'tin-tuc', intro: 'Kiến thức sức khỏe tim mạch & tin tức phòng khám.' },
+  media: [],
 }
 
 /* ============ STORE ============ */
@@ -569,6 +577,7 @@ function mergeC(p: any): SiteContent {
     menu: Array.isArray(p?.menu) ? p.menu : [],
     posts: Array.isArray(p?.posts) ? p.posts : [],
     blog: { ...DEFAULT_CONTENT.blog, ...((p && p.blog) ?? {}) },
+    media: Array.isArray(p?.media) ? p.media : [],
   }
 }
 
@@ -620,6 +629,7 @@ export const useContent = create<ContentState>()(
           published.pages = structuredClone(content.pages) // đa trang: đồng bộ luôn để áp dụng LIVE
           published.posts = structuredClone(content.posts)
           published.blog = structuredClone(content.blog)
+          published.media = structuredClone(content.media)
           return { content, published, pubTs: new Date().toISOString() }
         }),
       save: () => set((s) => ({ published: structuredClone(s.content), dirty: false, pubTs: new Date().toISOString() })),

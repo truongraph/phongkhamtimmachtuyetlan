@@ -7,7 +7,8 @@ import { ConfirmDialog } from '@/components/ui/alert-dialog'
 import { ICON_OPTIONS, Icon } from '@/lib/icons'
 import { formatVnPhone } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { ArrowUp, ArrowDown, Trash2, Upload, GripVertical } from 'lucide-react'
+import { ArrowUp, ArrowDown, Trash2, Upload, GripVertical, Image as ImageIcon } from 'lucide-react'
+import { useMedia, useMediaLib } from './media/MediaPicker'
 import { useRef, useState } from 'react'
 import {
   DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent,
@@ -152,22 +153,27 @@ export function IconPicker({ value, onChange }: { value: string; onChange: (v: s
 
 export function ImageUpload({ label, value, onChange }: { label: string; value: string; onChange: (dataUrl: string) => void }) {
   const ref = useRef<HTMLInputElement>(null)
+  const openMedia = useMedia()
+  const lib = useMediaLib()
   function pick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = () => onChange(String(reader.result))
+    reader.onload = () => { const url = String(reader.result); onChange(url); lib.add([{ name: file.name, url }]) } // tải lên → tự lưu vào Thư viện Media
     reader.readAsDataURL(file)
   }
   return (
     <div className="space-y-1.5">
       <Label>{label}</Label>
       <div className="flex items-center gap-4">
-        <img src={value} alt="" className="size-16 rounded-lg border object-cover bg-muted" />
+        <img src={value} alt="" className="size-16 rounded-lg border object-cover bg-muted shrink-0" />
         <div className="space-y-2">
           <input ref={ref} type="file" accept="image/*" hidden onChange={pick} />
-          <Button type="button" variant="outline" size="sm" onClick={() => ref.current?.click()}><Upload className="size-4" /> Tải ảnh lên</Button>
-          <p className="text-[.75rem] text-muted-foreground">PNG/JPG, ảnh sẽ lưu trong trình duyệt.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => ref.current?.click()}><Upload className="size-4" /> Tải ảnh lên</Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => openMedia(onChange)}><ImageIcon className="size-4" /> Từ thư viện</Button>
+          </div>
+          <p className="text-[.75rem] text-muted-foreground">PNG/JPG. Ảnh tải lên được lưu vào Thư viện Media để dùng lại.</p>
         </div>
       </div>
     </div>

@@ -79,6 +79,19 @@ body { background-color: hsl(var(--background)); }
 html { scroll-behavior: smooth; }
 body { margin: 0; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 
+/* Thanh cuộn mảnh, bo tròn, theo tông giao diện (tự đổi sáng/tối). */
+* { scrollbar-width: thin; scrollbar-color: hsl(var(--muted-foreground) / .35) transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / .32);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / .55); background-clip: padding-box; }
+*::-webkit-scrollbar-corner { background: transparent; }
+
 /* public site scoped helpers */
 .tl-site h1, .tl-site h2, .tl-site h3, .tl-site h4, .tl-site .site-head {
   font-family: var(--tl-head, 'Lora', Georgia, serif);

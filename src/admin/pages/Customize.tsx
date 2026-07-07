@@ -2,6 +2,7 @@ import { useRef, useState, useLayoutEffect, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useContent, newRow, type SiteContent, type SectionType, type RowBlock } from '@/store/content'
 import { RowEditorDialog } from '../customize/RowEditor'
+import { MediaProvider, MediaPicker } from '../media/MediaPicker'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -20,7 +21,7 @@ import {
   ChevronRight, ChevronLeft, Plus, SquarePen, Trash2, Columns3, type LucideIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { TL_READY, TL_CONTENT, TL_SET, TL_FOCUS } from '@/lib/editMode'
+import { TL_READY, TL_CONTENT, TL_SET, TL_FOCUS, TL_PICKIMG } from '@/lib/editMode'
 import { pushContent } from '@/lib/backend'
 import { PANEL_SECTIONS, ContactPanel, StatsPanel, type SectionMeta } from '../customize/panels'
 
@@ -296,6 +297,7 @@ export function Customize() {
   const [device, setDevice] = useState<keyof typeof DEVICES>('desktop')
   const [publishing, setPublishing] = useState(false)
   const [hideSidebar, setHideSidebar] = useState(false)
+  const [pickPath, setPickPath] = useState<string | null>(null) // đổi ảnh inline trên preview → mở Thư viện Media
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const [avail, setAvail] = useState({ w: 0, h: 0 })
@@ -336,6 +338,7 @@ export function Customize() {
       const d = e.data as { type?: string; path?: string; value?: unknown }
       if (d?.type === TL_READY) sendContent()
       else if (d?.type === TL_SET && d.path != null) useContent.getState().setPath(d.path, d.value)
+      else if (d?.type === TL_PICKIMG && d.path) setPickPath(d.path)
       else if (d?.type === TL_FOCUS && d.path) {
         // Bấm/sửa ở preview → sidebar nhảy tới đúng panel + phần con.
         const t = pathToNav(d.path, useContent.getState().content)
@@ -368,6 +371,7 @@ export function Customize() {
   const crumb = secMeta ? secMeta.title : panelDef ? panelDef.label : clinicName
 
   return (
+    <MediaProvider>
     <div className="fixed inset-0 z-50 flex bg-neutral-300/60">
       <style>{PANEL_CSS}</style>
       {/* TRÁI: bảng điều khiển (trượt ẩn/hiện) */}
@@ -492,6 +496,10 @@ export function Customize() {
           <span className="grid place-items-center size-5 rounded-full bg-white/20"><ChevronRight className="size-3.5" /></span> Hiện bảng
         </button>
       )}
+
+      {/* Đổi ảnh trực tiếp trên preview → chọn từ Thư viện Media (hoặc tải lên) */}
+      <MediaPicker open={!!pickPath} onOpenChange={(o) => { if (!o) setPickPath(null) }} onPick={(url) => { if (pickPath) { useContent.getState().setPath(pickPath, url); setPickPath(null) } }} />
     </div>
+    </MediaProvider>
   )
 }

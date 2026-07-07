@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useContent, slugify, type Post, type PageDef, type RowElement, type RowElementKind, type RowColumn } from '@/store/content'
+import { MediaPicker, useMediaLib } from '../media/MediaPicker'
 import { ThemeStyle } from '@/site/ThemeStyle'
 import { typoStyle, SOCIAL_ICONS, SOCIAL_LABEL } from '@/site/sections/CustomRow'
 import { Icon, ICON_OPTIONS } from '@/lib/icons'
@@ -12,13 +13,18 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { Popover } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/alert-dialog'
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import {
   ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown, Settings, Eye, ExternalLink, Check, X, Search,
   Pilcrow, Heading, Image as ImageIcon, List, MousePointerClick, Video, MapPin, Minus, StretchVertical, CalendarDays,
-  Quote, Images, Code, Sparkles, Newspaper, Share2, Table, Globe, Columns2,
+  Quote, Images, Code, Sparkles, Newspaper, Share2, Table, Globe, Columns2, GripVertical, Copy, Upload, Undo2, Redo2,
 } from 'lucide-react'
 
 const WP = 'hsl(var(--primary))' // đồng bộ màu chính của admin
+// Mở hộp chọn ảnh từ Thư viện Media (truyền callback nhận URL). Cung cấp bởi GutenbergEditor.
+const MediaCtx = createContext<(cb: (url: string) => void) => void>(() => {})
 
 type BlockDef = { kind: RowElementKind; label: string; icon: typeof Pilcrow }
 const CATALOG: { group: string; items: BlockDef[] }[] = [
@@ -166,12 +172,13 @@ function TableCanvas({ rows, onChange }: { rows: string[][]; onChange: (rows: st
 
 /** Ô sửa gọn cho phần tử con trong cột. */
 function ChildFields({ e, onPatch }: { e: RowElement; onPatch: (p: Record<string, unknown>) => void }) {
+  const openMedia = useContext(MediaCtx)
   if (e.kind === 'heading') return <Input value={e.text} onChange={(ev) => onPatch({ text: ev.target.value })} placeholder="Tiêu đề" className="h-8 font-bold" />
   if (e.kind === 'text') return <Textarea value={e.text} onChange={(ev) => onPatch({ text: ev.target.value })} placeholder="Nội dung" className="min-h-[56px]" />
   if (e.kind === 'image') return (
     <div className="space-y-1.5">
       {e.url && <img src={e.url} alt="" className="w-full aspect-video object-cover rounded border" />}
-      <Button size="sm" variant="outline" className="w-full h-8" onClick={() => pickImage((url) => onPatch({ url }))}><ImageIcon className="size-3.5" /> {e.url ? 'Đổi ảnh' : 'Chọn ảnh'}</Button>
+      <Button size="sm" variant="outline" className="w-full h-8" onClick={() => openMedia((url) => onPatch({ url }))}><ImageIcon className="size-3.5" /> {e.url ? 'Đổi ảnh' : 'Chọn ảnh'}</Button>
     </div>
   )
   if (e.kind === 'button') return <div className="space-y-1.5"><Input value={e.text} onChange={(ev) => onPatch({ text: ev.target.value })} placeholder="Chữ nút" className="h-8" /><Input value={e.href} onChange={(ev) => onPatch({ href: ev.target.value })} placeholder="#dat-lich" className="h-8" /></div>
@@ -288,9 +295,11 @@ function BlockContent({ b, onText, onPickImg, patch }: { b: RowElement; onText: 
 
 /** Panel cài đặt khối (bên phải). */
 function BlockSettings({ b, patch }: { b: RowElement; patch: (p: Record<string, unknown>) => void }) {
+  const openMedia = useContext(MediaCtx)
+  const lib = useMediaLib()
   if (b.kind === 'image') return (
     <div className="space-y-2">
-      <Button size="sm" variant="outline" className="w-full" onClick={() => pickImage((url) => patch({ url }))}><ImageIcon className="size-4" /> {b.url ? 'Đổi ảnh' : 'Chọn ảnh'}</Button>
+      <Button size="sm" variant="outline" className="w-full" onClick={() => openMedia((url) => patch({ url }))}><ImageIcon className="size-4" /> {b.url ? 'Đổi ảnh' : 'Chọn ảnh'}</Button>
       <div><Label>Mô tả ảnh (alt)</Label><Input value={b.alt || ''} onChange={(e) => patch({ alt: e.target.value })} className="mt-1" /></div>
     </div>
   )
@@ -341,7 +350,10 @@ function BlockSettings({ b, patch }: { b: RowElement; patch: (p: Record<string, 
   )
   if (b.kind === 'gallery') return (
     <div className="space-y-2">
-      <Button size="sm" variant="outline" className="w-full" onClick={() => pickImages((urls) => patch({ images: [...b.images, ...urls.map((u) => ({ id: Math.random().toString(36).slice(2, 9), url: u }))] }))}><Images className="size-4" /> Thêm ảnh</Button>
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" className="flex-1" onClick={() => lib.upload((urls) => patch({ images: [...b.images, ...urls.map((u) => ({ id: rid(), url: u }))] }))}><Upload className="size-4" /> Tải ảnh</Button>
+        <Button size="sm" variant="outline" className="flex-1" onClick={() => openMedia((url) => patch({ images: [...b.images, { id: rid(), url }] }))}><Images className="size-4" /> Từ thư viện</Button>
+      </div>
       {b.images.length > 0 && <div className="grid grid-cols-3 gap-1.5">{b.images.map((im) => <div key={im.id} className="relative group"><img src={im.url} alt="" className="w-full aspect-square object-cover rounded border" /><button onClick={() => patch({ images: b.images.filter((x) => x.id !== im.id) })} className="absolute top-0.5 right-0.5 grid size-5 place-items-center rounded bg-black/60 text-white opacity-0 group-hover:opacity-100"><X className="size-3" /></button></div>)}</div>}
     </div>
   )
@@ -411,6 +423,13 @@ function BlockLibrary({ onClose, onAdd }: { onClose: () => void; onAdd: (k: RowE
   )
 }
 
+/** Bọc 1 khối để kéo–thả sắp thứ tự; `children` nhận props của tay cầm kéo. */
+function SortableBlock({ id, children }: { id: string; children: (handle: Record<string, unknown>) => React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : undefined, zIndex: isDragging ? 40 : undefined, position: 'relative' }
+  return <div ref={setNodeRef} style={style}>{children({ ...attributes, ...listeners })}</div>
+}
+
 /** Trình soạn thảo Gutenberg (toàn màn hình) — dùng chung cho BÀI VIẾT và TRANG PHỤ. */
 export function GutenbergEditor({ kind, id, onClose, onDelete }: { kind: 'post' | 'page'; id: string; onClose: () => void; onDelete: () => void }) {
   const entity = useContent((s) => (kind === 'post' ? s.content.posts.find((p) => p.id === id) : s.content.pages.find((p) => p.id === id)))
@@ -421,6 +440,47 @@ export function GutenbergEditor({ kind, id, onClose, onDelete }: { kind: 'post' 
   const [tab, setTab] = useState<'doc' | 'block'>('doc')
   const [panel, setPanel] = useState(true)
   const [libOpen, setLibOpen] = useState(false)
+  const [mediaOpen, setMediaOpen] = useState(false)
+  const mediaCb = useRef<(url: string) => void>(() => {})
+  const openMedia = (cb: (url: string) => void) => { mediaCb.current = cb; setMediaOpen(true) }
+
+  // ---- Undo / Redo (lịch sử chỉnh sửa) ----
+  const histRef = useRef<{ past: string[]; future: string[] }>({ past: [], future: [] })
+  const lastSnapRef = useRef('')
+  const lastTsRef = useRef(0)
+  const travelRef = useRef(false)
+  const [, forceHist] = useState(0)
+  const entitySnap = () => { const c = useContent.getState().content; const e = kind === 'post' ? c.posts.find((x) => x.id === id) : c.pages.find((x) => x.id === id); return JSON.stringify(e) }
+  const restoreSnap = (snap: string) => { travelRef.current = true; lastSnapRef.current = snap; const data = JSON.parse(snap); setLayout((c) => { const arr: any[] = kind === 'post' ? c.posts : c.pages; const i = arr.findIndex((x) => x.id === id); if (i >= 0) arr[i] = data }) }
+  const undo = () => { const h = histRef.current; if (!h.past.length) return; h.future.push(entitySnap()); restoreSnap(h.past.pop()!); forceHist((v) => v + 1) }
+  const redo = () => { const h = histRef.current; if (!h.future.length) return; h.past.push(entitySnap()); restoreSnap(h.future.pop()!); forceHist((v) => v + 1) }
+  useEffect(() => {
+    if (!entity) return
+    const cur = JSON.stringify(entity)
+    if (cur === lastSnapRef.current) return
+    if (travelRef.current) { travelRef.current = false; lastSnapRef.current = cur; return }
+    const prev = lastSnapRef.current
+    lastSnapRef.current = cur
+    if (!prev) return
+    const now = Date.now()
+    if (now - lastTsRef.current > 700 || histRef.current.past.length === 0) {
+      histRef.current.past.push(prev)
+      if (histRef.current.past.length > 80) histRef.current.past.shift()
+      histRef.current.future = []
+      forceHist((v) => v + 1)
+    }
+    lastTsRef.current = now
+  }, [entity])
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return
+      const k = e.key.toLowerCase()
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo() }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, []) // undo/redo đọc state tươi từ store
 
   if (!entity) return null
   const post = entity as Post
@@ -436,14 +496,28 @@ export function GutenbergEditor({ kind, id, onClose, onDelete }: { kind: 'post' 
   const addBlock = (kind: RowElementKind, at: number) => { const b = makeBlock(kind, newId()); editBody((els) => { els.splice(at, 0, b) }); setSel(b.id); setTab('block') }
   const delBlock = (bid: string) => { editBody((els) => { const i = els.findIndex((e) => e.id === bid); if (i >= 0) els.splice(i, 1) }); setSel(null); setTab('doc') }
   const moveBlock = (bid: string, dir: -1 | 1) => editBody((els) => { const i = els.findIndex((e) => e.id === bid); const j = i + dir; if (i < 0 || j < 0 || j >= els.length) return; [els[i], els[j]] = [els[j], els[i]] })
+  const dupBlock = (bid: string) => editBody((els) => { const i = els.findIndex((e) => e.id === bid); if (i < 0) return; const clone = JSON.parse(JSON.stringify(els[i])) as RowElement; clone.id = newId(); els.splice(i + 1, 0, clone); setSel(clone.id) })
   const insertAt = () => (sel ? blocks.findIndex((b) => b.id === sel) + 1 : blocks.length)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+  const onBlockDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e
+    if (!over || active.id === over.id) return
+    editBody((els) => { const from = els.findIndex((x) => x.id === active.id); const to = els.findIndex((x) => x.id === over.id); if (from < 0 || to < 0) return; els.splice(0, els.length, ...arrayMove(els, from, to)) })
+  }
 
   return (
+    <MediaCtx.Provider value={openMedia}>
     <div className="fixed inset-0 z-50 flex flex-col bg-muted">
       {/* Thanh trên cùng kiểu WP */}
       <div className="h-14 shrink-0 bg-background border-b flex items-center gap-2 px-3">
         <button onClick={onClose} className="grid size-10 place-items-center rounded hover:bg-muted text-muted-foreground" title="Quay lại danh sách"><ArrowLeft className="size-5" /></button>
         <button type="button" onClick={() => setLibOpen((v) => !v)} className="grid size-9 place-items-center rounded text-primary-foreground transition-transform ml-1 hover:opacity-90" style={{ background: WP, transform: libOpen ? 'rotate(45deg)' : 'none' }} title="Thư viện khối"><Plus className="size-5" /></button>
+        <div className="w-px h-6 bg-border mx-1" />
+        <button onClick={undo} disabled={!histRef.current.past.length} title="Hoàn tác (Ctrl+Z)" className="grid size-9 place-items-center rounded hover:bg-muted text-muted-foreground disabled:opacity-30"><Undo2 className="size-[18px]" /></button>
+        <button onClick={redo} disabled={!histRef.current.future.length} title="Làm lại (Ctrl+Shift+Z)" className="grid size-9 place-items-center rounded hover:bg-muted text-muted-foreground disabled:opacity-30"><Redo2 className="size-[18px]" /></button>
         <div className="flex-1" />
         <span className="text-[.8rem] text-muted-foreground hidden sm:inline">{statusText}</span>
         <Button asChild variant="outline" size="sm"><a href={viewUrl} target="_blank" rel="noreferrer"><Eye className="size-4" /> Xem</a></Button>
@@ -461,24 +535,33 @@ export function GutenbergEditor({ kind, id, onClose, onDelete }: { kind: 'post' 
             <AutoArea value={entity.title} onChange={(v) => editEntity((e) => { e.title = v })} placeholder={kind === 'post' ? 'Thêm tiêu đề' : 'Tên trang'} className="site-head font-bold text-[clamp(1.9rem,4vw,2.6rem)] leading-tight mb-2" style={{ color: 'var(--tl-ink)' }} />
             <div className="border-b mb-6" style={{ borderColor: 'var(--tl-line)' }} />
 
-            {blocks.map((b, i) => (
-              <div key={b.id}>
-                <div className="group relative" onClick={(e) => { e.stopPropagation(); setSel(b.id); setTab('block') }}>
-                  {sel === b.id && (
-                    <div className="absolute -top-9 left-0 z-10 flex items-center gap-0.5 rounded-md bg-foreground text-background shadow-lg px-1 py-1" onClick={(e) => e.stopPropagation()}>
-                      <span className="grid size-7 place-items-center opacity-80">{(() => { const I = KIND_ICON[b.kind]; return <I className="size-4" /> })()}</span>
-                      <button onClick={() => moveBlock(b.id, -1)} disabled={i === 0} className="grid size-7 place-items-center rounded hover:bg-white/15 disabled:opacity-30"><ChevronUp className="size-4" /></button>
-                      <button onClick={() => moveBlock(b.id, 1)} disabled={i === blocks.length - 1} className="grid size-7 place-items-center rounded hover:bg-white/15 disabled:opacity-30"><ChevronDown className="size-4" /></button>
-                      <button onClick={() => delBlock(b.id)} className="grid size-7 place-items-center rounded hover:bg-white/15 text-red-300"><Trash2 className="size-4" /></button>
-                    </div>
-                  )}
-                  <div className={`rounded-md px-2 -mx-2 py-1.5 transition-shadow ${sel === b.id ? 'ring-2' : 'hover:ring-1 hover:ring-black/10'}`} style={sel === b.id ? { boxShadow: `0 0 0 2px ${WP}` } : undefined}>
-                    <BlockContent b={b} onText={(v) => patchBlock(b.id, { text: v })} onPickImg={() => pickImage((url) => patchBlock(b.id, { url }))} patch={(p) => patchBlock(b.id, p)} />
-                  </div>
-                </div>
-                <Inserter onPick={(k) => addBlock(k, i + 1)} />
-              </div>
-            ))}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onBlockDragEnd}>
+              <SortableContext items={blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+                {blocks.map((b, i) => (
+                  <SortableBlock key={b.id} id={b.id}>
+                    {(handle) => (
+                      <div>
+                        <div className="group relative" onClick={(e) => { e.stopPropagation(); setSel(b.id); setTab('block') }}>
+                          {sel === b.id && (
+                            <div className="absolute -top-9 left-0 z-20 flex items-center gap-0.5 rounded-md bg-foreground text-background shadow-lg px-1 py-1" onClick={(e) => e.stopPropagation()}>
+                              <button {...handle} title="Kéo để di chuyển" className="grid size-7 place-items-center rounded hover:bg-white/15 cursor-grab active:cursor-grabbing touch-none"><GripVertical className="size-4" /></button>
+                              <button onClick={() => moveBlock(b.id, -1)} disabled={i === 0} title="Lên" className="grid size-7 place-items-center rounded hover:bg-white/15 disabled:opacity-30"><ChevronUp className="size-4" /></button>
+                              <button onClick={() => moveBlock(b.id, 1)} disabled={i === blocks.length - 1} title="Xuống" className="grid size-7 place-items-center rounded hover:bg-white/15 disabled:opacity-30"><ChevronDown className="size-4" /></button>
+                              <button onClick={() => dupBlock(b.id)} title="Nhân bản" className="grid size-7 place-items-center rounded hover:bg-white/15"><Copy className="size-4" /></button>
+                              <button onClick={() => delBlock(b.id)} title="Xóa" className="grid size-7 place-items-center rounded hover:bg-white/15 text-red-300"><Trash2 className="size-4" /></button>
+                            </div>
+                          )}
+                          <div className={`rounded-md px-2 -mx-2 py-1.5 transition-shadow ${sel === b.id ? 'ring-2' : 'hover:ring-1 hover:ring-black/10'}`} style={sel === b.id ? { boxShadow: `0 0 0 2px ${WP}` } : undefined}>
+                            <BlockContent b={b} onText={(v) => patchBlock(b.id, { text: v })} onPickImg={() => openMedia((url) => patchBlock(b.id, { url }))} patch={(p) => patchBlock(b.id, p)} />
+                          </div>
+                        </div>
+                        <Inserter onPick={(k) => addBlock(k, i + 1)} />
+                      </div>
+                    )}
+                  </SortableBlock>
+                ))}
+              </SortableContext>
+            </DndContext>
 
             {blocks.length === 0 && (
               <button onClick={() => addBlock('text', 0)} className="text-left text-[1.05rem] text-black/25 w-full">Nhập nội dung, hoặc bấm ➕ để thêm khối…</button>
@@ -500,8 +583,8 @@ export function GutenbergEditor({ kind, id, onClose, onDelete }: { kind: 'post' 
                   <label className="flex items-center justify-between gap-2"><span className="text-sm font-medium">{post.published ? 'Đã đăng' : 'Bản nháp'}</span><Switch checked={post.published} onCheckedChange={(v) => editEntity((e) => { e.published = v })} /></label>
                   <div><Label>Ảnh bìa</Label>
                     {post.cover
-                      ? <div className="mt-1 space-y-2"><img src={post.cover} alt="" className="w-full aspect-[16/9] object-cover rounded border" /><div className="flex gap-2"><Button size="sm" variant="outline" className="flex-1" onClick={() => pickImage((url) => editEntity((e) => { e.cover = url }))}>Đổi</Button><Button size="sm" variant="outline" className="text-destructive" onClick={() => editEntity((e) => { e.cover = '' })}><Trash2 className="size-4" /></Button></div></div>
-                      : <button onClick={() => pickImage((url) => editEntity((e) => { e.cover = url }))} className="mt-1 w-full aspect-[16/9] rounded border-2 border-dashed grid place-items-center text-muted-foreground hover:border-[color:var(--wp)] text-[.8rem]" style={{ ['--wp' as any]: WP }}><span className="flex flex-col items-center gap-1"><ImageIcon className="size-5" /> Đặt ảnh bìa</span></button>}
+                      ? <div className="mt-1 space-y-2"><img src={post.cover} alt="" className="w-full aspect-[16/9] object-cover rounded border" /><div className="flex gap-2"><Button size="sm" variant="outline" className="flex-1" onClick={() => openMedia((url) => editEntity((e) => { e.cover = url }))}>Đổi</Button><Button size="sm" variant="outline" className="text-destructive" onClick={() => editEntity((e) => { e.cover = '' })}><Trash2 className="size-4" /></Button></div></div>
+                      : <button onClick={() => openMedia((url) => editEntity((e) => { e.cover = url }))} className="mt-1 w-full aspect-[16/9] rounded border-2 border-dashed grid place-items-center text-muted-foreground hover:border-[color:var(--wp)] text-[.8rem]" style={{ ['--wp' as any]: WP }}><span className="flex flex-col items-center gap-1"><ImageIcon className="size-5" /> Đặt ảnh bìa</span></button>}
                   </div>
                   <div><Label>Đường dẫn</Label><div className="flex items-center gap-1 mt-1"><span className="text-[.72rem] text-muted-foreground truncate">/{blog.slug}/</span><Input value={post.slug} onChange={(e) => editEntity((e2) => { e2.slug = slugify(e.target.value) })} className="h-9" /></div></div>
                   <div><Label>Ngày đăng</Label><DatePicker value={post.date} onChange={(v) => editEntity((e2) => { e2.date = v })} className="mt-1" /></div>
@@ -531,6 +614,8 @@ export function GutenbergEditor({ kind, id, onClose, onDelete }: { kind: 'post' 
           </aside>
         )}
       </div>
+      <MediaPicker open={mediaOpen} onOpenChange={setMediaOpen} onPick={(url) => mediaCb.current(url)} />
     </div>
+    </MediaCtx.Provider>
   )
 }

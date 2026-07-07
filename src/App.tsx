@@ -13,6 +13,7 @@ import { Customize } from './admin/pages/Customize'
 import { Pages } from './admin/pages/Pages'
 import { Posts } from './admin/pages/Posts'
 import { Menus } from './admin/pages/Menus'
+import { Media } from './admin/pages/Media'
 import { BookingFormEditor } from './admin/pages/BookingFormEditor'
 import { Settings } from './admin/pages/Settings'
 import { HeroEditor } from './admin/pages/HeroEditor'
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="pages" element={<Pages />} />
           <Route path="posts" element={<Posts />} />
           <Route path="menus" element={<Menus />} />
+          <Route path="media" element={<Media />} />
           <Route path="themes" element={<Themes />} />
           <Route path="hero" element={<HeroEditor />} />
           <Route path="stats" element={<StatsEditor />} />

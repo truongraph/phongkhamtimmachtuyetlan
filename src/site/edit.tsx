@@ -1,6 +1,6 @@
 import { createElement, useEffect } from 'react'
 import { useContent } from '@/store/content'
-import { isEditMode, postToParent, TL_READY, TL_CONTENT, TL_SET, TL_FOCUS } from '@/lib/editMode'
+import { isEditMode, postToParent, TL_READY, TL_CONTENT, TL_SET, TL_FOCUS, TL_PICKIMG } from '@/lib/editMode'
 
 /**
  * Bọc một đoạn chữ để có thể BẤM–SỬA TẠI CHỖ khi website chạy ở chế độ "Sửa trực quan".
@@ -64,19 +64,10 @@ export function EditableImage({ path, src, alt, className, style }: {
   style?: React.CSSProperties
 }) {
   if (!isEditMode()) return <img src={src} alt={alt} className={className} style={style} />
+  // Bấm để đổi ảnh: báo cha (trang Tùy chỉnh) mở Thư viện Media — chọn/tải ảnh rồi ghi lại.
   const pick = () => {
-    postToParent({ type: TL_FOCUS, path }) // báo sidebar nhảy tới đúng phần
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.onchange = () => {
-      const file = input.files?.[0]
-      if (!file) return
-      const reader = new FileReader()
-      reader.onload = () => postToParent({ type: TL_SET, path, value: String(reader.result) })
-      reader.readAsDataURL(file)
-    }
-    input.click()
+    postToParent({ type: TL_FOCUS, path })   // sidebar nhảy tới đúng phần
+    postToParent({ type: TL_PICKIMG, path }) // cha mở hộp chọn ảnh
   }
   return <img src={src} alt={alt} className={className} style={{ ...style, cursor: 'pointer' }}
     data-editimg="" title="Bấm để đổi ảnh" onClick={pick} />

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { PageHead, SortableList, DeleteBtn } from '../parts'
 import { SECTION_NAV } from '@/site/SiteChrome'
-import { Home, LayoutList, FileText, Link2, Newspaper, ChevronDown, Wand2, RotateCcw, ListTree } from 'lucide-react'
+import { Home, LayoutList, FileText, Link2, Newspaper, ChevronDown, Wand2, RotateCcw, ListTree, IndentIncrease, IndentDecrease, CornerDownRight } from 'lucide-react'
 import { toast } from 'sonner'
 
 const KIND_META = {
@@ -72,6 +72,21 @@ export function Menus() {
   const patch = (id: string, p: Partial<MenuItem>) => set((c) => { const m = c.menu.find((x) => x.id === id); if (m) Object.assign(m, p) })
   const del = (id: string) => set((c) => { c.menu = c.menu.filter((x) => x.id !== id) })
   const pushMany = (items: MenuItem[]) => set((c) => { c.menu.push(...items) })
+  const hasKids = (id: string) => menu.some((m) => m.parent === id)
+  // Thụt vào thành mục con của mục cấp-1 GẦN NHẤT phía trên; dồn xuống ngay dưới nhóm cha.
+  const indent = (id: string) => set((c) => {
+    const arr = c.menu
+    const i = arr.findIndex((m) => m.id === id); if (i < 0) return
+    let pIdx = -1; for (let k = i - 1; k >= 0; k--) { if (!arr[k].parent) { pIdx = k; break } }
+    if (pIdx < 0) return
+    const parentId = arr[pIdx].id
+    arr[i].parent = parentId
+    const [item] = arr.splice(i, 1)
+    let at = arr.findIndex((m) => m.id === parentId) + 1
+    while (at < arr.length && arr[at].parent === parentId) at++
+    arr.splice(at, 0, item)
+  })
+  const outdent = (id: string) => set((c) => { const m = c.menu.find((x) => x.id === id); if (m) delete m.parent })
 
   const sectionOpts = sections.map((s) => SECTION_NAV[s.type]).filter(Boolean) as { id: string; label: string }[]
   const hint = (m: MenuItem) => {
@@ -127,18 +142,23 @@ export function Menus() {
               </div>
             ) : (
               <SortableList items={menu} onChange={setMenu} className="space-y-2">
-                {(m, _i, handle) => {
+                {(m, i, handle) => {
                   const K = KIND_META[m.kind]
+                  const canIndent = !m.parent && !hasKids(m.id) && menu.slice(0, i).some((x) => !x.parent)
                   return (
-                    <div className="flex items-center gap-2.5 rounded-lg border bg-background p-2">
+                    <div className={`flex items-center gap-2.5 rounded-lg border bg-background p-2 ${m.parent ? 'ml-7 border-l-[3px] border-l-primary/30' : ''}`}>
                       {handle}
+                      {m.parent && <CornerDownRight className="size-4 text-muted-foreground shrink-0 -ml-1" />}
                       <span className="grid place-items-center size-8 rounded-md bg-primary/10 text-primary shrink-0"><K.icon className="size-4" /></span>
                       <div className="flex-1 min-w-0">
                         <Input value={m.label} onChange={(e) => patch(m.id, { label: e.target.value })} className="h-9" />
                         {m.kind === 'url'
                           ? <Input value={m.ref || ''} onChange={(e) => patch(m.id, { ref: e.target.value })} placeholder="https://… hoặc /duong-dan" className="h-8 mt-1.5 text-[.8rem]" />
-                          : <div className="text-[.68rem] text-muted-foreground mt-1 truncate">{K.label} · {hint(m)}</div>}
+                          : <div className="text-[.68rem] text-muted-foreground mt-1 truncate">{K.label} · {hint(m)}{m.parent ? ' · mục con' : ''}</div>}
                       </div>
+                      {m.parent
+                        ? <button onClick={() => outdent(m.id)} title="Đưa ra cấp 1" className="grid size-8 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground shrink-0"><IndentDecrease className="size-4" /></button>
+                        : canIndent && <button onClick={() => indent(m.id)} title="Thành mục con (dropdown)" className="grid size-8 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground shrink-0"><IndentIncrease className="size-4" /></button>}
                       <DeleteBtn onClick={() => del(m.id)} title="Xóa mục menu?" desc="Mục sẽ bị gỡ khỏi thanh menu." />
                     </div>
                   )

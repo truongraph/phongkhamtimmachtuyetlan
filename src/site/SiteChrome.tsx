@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { useContent } from '@/store/content'
 import { useTemplate } from './templates'
 import { Icon } from '@/lib/icons'
-import { Phone, User, Activity, HeartPulse, MapPin, ChevronUp } from 'lucide-react'
+import { Phone, User, Activity, HeartPulse, MapPin, ChevronUp, ChevronDown } from 'lucide-react'
 import { openBooking } from './sections/Hero'
 import { Editable, EditableImage } from './edit'
 import type { SectionType } from '@/store/content'
@@ -21,7 +21,7 @@ export const SECTION_NAV: Partial<Record<SectionType, { id: string; label: strin
   contact: { id: 'lien-he', label: 'Liên hệ' },
 }
 
-interface NavItem { id: string; label: string; spy?: string; to?: string }
+interface NavItem { id: string; label: string; spy?: string; to?: string; mid?: string; parent?: string }
 // Menu: nếu có MENU TUỲ CHỈNH thì theo đúng đó; ngược lại TỰ ĐỘNG (trang chủ + phần hiển thị + trang phụ).
 function useNav(): NavItem[] {
   const sections = useContent((s) => s.published.sections)
@@ -32,10 +32,12 @@ function useNav(): NavItem[] {
 
   if (menu && menu.length) {
     return menu.map((m): NavItem => {
-      if (m.kind === 'home') return { id: 'top', label: m.label, spy: 'dat-lich' }
-      if (m.kind === 'page') { const p = pages.find((x) => x.id === m.ref); return { id: `page-${m.ref}`, label: m.label, to: p ? `/${p.slug}` : '/' } }
-      if (m.kind === 'url') return { id: `url-${m.id}`, label: m.label, to: m.ref || '#' }
-      return { id: m.ref || '', label: m.label } // section (mỏ neo)
+      let item: NavItem
+      if (m.kind === 'home') item = { id: 'top', label: m.label, spy: 'dat-lich' }
+      else if (m.kind === 'page') { const p = pages.find((x) => x.id === m.ref); item = { id: `page-${m.ref}`, label: m.label, to: p ? `/${p.slug}` : '/' } }
+      else if (m.kind === 'url') item = { id: `url-${m.id}`, label: m.label, to: m.ref || '#' }
+      else item = { id: m.ref || '', label: m.label } // section (mỏ neo)
+      return { ...item, mid: m.id, parent: m.parent }
     }).filter((n) => n.label)
   }
 
@@ -80,13 +82,32 @@ function Logo() {
 }
 
 function NavLinks({ nav, active, light, center, onHome }: { nav: NavItem[]; active: string; light?: boolean; center?: boolean; onHome: boolean }) {
+  const tops = nav.filter((n) => !n.parent)
+  const kids = (mid?: string) => (mid ? nav.filter((n) => n.parent === mid) : [])
+  const linkStyle = (on: boolean) => ({ color: light ? (on ? '#fff' : 'rgba(255,255,255,.82)') : (on ? 'var(--tl-primary)' : 'var(--tl-ink)') })
   return (
     <nav className={`hidden lg:flex items-center gap-1 ${center ? 'justify-center' : ''}`}>
-      {nav.map((n) => {
+      {tops.map((n) => {
         const on = active === (n.spy ?? n.id)
+        const children = kids(n.mid)
+        if (children.length) {
+          return (
+            <div key={n.id} className="relative group/nav">
+              <a href={navHref(n, onHome)} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-[.94rem] font-semibold" style={linkStyle(on)}>
+                {n.label}<ChevronDown className="size-3.5 opacity-70 transition-transform group-hover/nav:rotate-180" />
+              </a>
+              <div className="absolute left-0 top-full pt-2 z-50 opacity-0 invisible translate-y-1 group-hover/nav:opacity-100 group-hover/nav:visible group-hover/nav:translate-y-0 transition-all">
+                <div className="min-w-[190px] rounded-xl border bg-white shadow-xl py-1.5" style={{ borderColor: 'var(--tl-line)' }}>
+                  {children.map((c) => (
+                    <a key={c.id} href={navHref(c, onHome)} className="block px-4 py-2 text-[.9rem] font-medium hover:bg-[color:var(--tl-soft)] transition-colors" style={{ color: 'var(--tl-ink)' }}>{c.label}</a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
+        }
         return (
-          <a key={n.id} href={navHref(n, onHome)} className="relative px-3 py-2 rounded-lg text-[.94rem] font-semibold transition-colors"
-            style={{ color: light ? (on ? '#fff' : 'rgba(255,255,255,.82)') : (on ? 'var(--tl-primary)' : 'var(--tl-ink)') }}>
+          <a key={n.id} href={navHref(n, onHome)} className="relative px-3 py-2 rounded-lg text-[.94rem] font-semibold transition-colors" style={linkStyle(on)}>
             {n.label}
             <span className="absolute left-3 right-3 -bottom-[1px] h-[2.5px] rounded origin-left transition-transform"
               style={{ background: light ? '#fff' : 'var(--tl-accent)', transform: on ? 'scaleX(1)' : 'scaleX(0)' }} />
@@ -227,7 +248,7 @@ export function SiteFooter() {
           <div>
             <h4 className="text-white text-[.8rem] tracking-[.1em] uppercase mb-4 font-bold font-sans">Liên kết</h4>
             <ul className="grid gap-2.5">
-              {nav.map((n) => <li key={n.id}><a href={navHref(n, onHome)} className="hover:text-white">{n.label}</a></li>)}
+              {nav.filter((n) => !n.parent).map((n) => <li key={n.id}><a href={navHref(n, onHome)} className="hover:text-white">{n.label}</a></li>)}
             </ul>
           </div>
           <div>
